@@ -1,0 +1,16 @@
+# Ignore virtual environment
+venv/
+
+# Ignore data folder
+data/
+
+# Ignore PyCharm-specific files
+.idea/
+
+# Ignore Python bytecode
+*.pyc
+
+# Ignore Jupyter Notebook checkpoints (if applicable)
+.ipynb_checkpoints/
+
+# Ignore any other files specific to your workflow
