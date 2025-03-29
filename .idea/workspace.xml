@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="&#10;readme update">
-      <change afterPath="$PROJECT_DIR$/scripts/cluster.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/download_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/download_data.py" afterDir="false" />
-    </list>
+    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="create clustering script" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -130,7 +126,14 @@
       <option name="project" value="LOCAL" />
       <updated>1743199012927</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="create clustering script">
+      <created>1743277750358</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1743277750358</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -149,7 +152,8 @@
     <MESSAGE value="creating files" />
     <MESSAGE value="data pre-processing" />
     <MESSAGE value="&#10;readme update" />
-    <option name="LAST_COMMIT_MESSAGE" value="&#10;readme update" />
+    <MESSAGE value="create clustering script" />
+    <option name="LAST_COMMIT_MESSAGE" value="create clustering script" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
