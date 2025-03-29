@@ -2,5 +2,4 @@ pandas
 numpy
 tqdm
 gdown
-time
-matplotlib.pyplot
+matplotlib

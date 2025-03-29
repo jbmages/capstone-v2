@@ -1,6 +1,7 @@
 from scripts.download_data import DataDownloader
 from scripts.preprocess_data import DataPreprocessor
 import os
+import traceback
 
 GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0Gga4Rvo5iDrHuHBFGgrP'
 
@@ -16,7 +17,8 @@ class FullWorkflow:
             #DataDownloader(url=self.dataset_url)
             print("Data download and processing complete.")
         except Exception as e:
-            print(f"An error occurred during data download: {e}")
+            print("An error occurred during data download:")
+            traceback.print_exc()  # Print full traceback
             return  # If download fails, stop the workflow
 
         try:
@@ -26,7 +28,8 @@ class FullWorkflow:
             preprocessor.process_data()  # Call process_data to trigger the full pipeline
             print("Data preprocessing complete.")
         except Exception as e:
-            print(f"An error occurred during data preprocessing: {e}")
+            print("An error occurred during data preprocessing:")
+            traceback.print_exc()  # Print full traceback
 
 
 # Example usage
