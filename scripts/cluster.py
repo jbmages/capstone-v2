@@ -3,6 +3,9 @@ import numpy as np
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 import scripts.utils as utils
+from sklearn.cluster import MiniBatchKMeans
+from sklearn.mixture import GaussianMixture
+
 
 
 class ClusteringModel:
@@ -12,7 +15,7 @@ class ClusteringModel:
         self.data = dataset
 
         # Retrieve scoring table first
-        self.scoring_table = utils.retrieve_data('../scoring/scoring.xlsx')
+        self.scoring_table = utils.retrieve_excel('scoring/scoring.xlsx')
         print('scoring table correctly read in')
         # Prepare data segments
         self.survey_data, self.time_data, self.score_data = self.prep_data()
@@ -44,6 +47,19 @@ class ClusteringModel:
 
     def assign_clusters(self):
         """Assign clusters to data """
+
+        # Apply MiniBatch KMeans (6 clusters)
+        kmeans = MiniBatchKMeans(n_clusters=6, random_state=42, batch_size=100)
+        self.data['KMeans_Cluster'] = kmeans.fit_predict(self.score_data)
+
+        # Apply Gaussian Mixture Model (5 clusters)
+        gmm = GaussianMixture(n_components=5, random_state=42)
+        self.data['GMM_Cluster'] = gmm.fit_predict(self.score_data)
+
+        # Save the updated dataset with cluster assignments
+        self.data.to_csv('data/data_with_clusters.csv', index=False)
+
+        print("Clustering complete. Data saved as 'cleaned_data_with_clusters.csv'.")
 
 
         pass  # Implement clustering logic later

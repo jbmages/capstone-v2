@@ -1,23 +1,14 @@
 import os
-import logging
 import traceback
 from scripts.download_data import DataDownloader
 from scripts.preprocess_data import DataPreprocessor
 from scripts.cluster import ClusteringModel
 import scripts.utils as utils
 
-# Configure logging
-logging.basicConfig(
-    filename="logs/workflow.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
-
-# Dataset URL (Google Drive or any other source)
 GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0Gga4Rvo5iDrHuHBFGgrP'
 
-# Define paths but check their existence dynamically
-RAW_DATA_PATH = 'data/raw_data.csv'
+# Define paths
+RAW_DATA_PATH = 'data/data-final.csv'
 CLEANED_DATA_PATH = 'data/cleaned_data_v2.csv'
 
 
@@ -27,7 +18,8 @@ class FullWorkflow:
     Includes data downloading, preprocessing, and clustering.
     """
 
-    def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True):
+    def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True,
+                 skip_clustering = False):
         """
         Initializes the full workflow.
 
@@ -39,7 +31,6 @@ class FullWorkflow:
         self.dataset = None
 
         try:
-            # Only execute steps if files don’t already exist
             if not skip_download or not os.path.exists(RAW_DATA_PATH):
                 self.data_download()
 
@@ -47,39 +38,39 @@ class FullWorkflow:
                 self.data_preprocessing()
 
             self.load_dataset()
+
+
             self.clustering()
-        except Exception as e:
-            logging.error("Critical error in workflow initialization: %s", e)
+        except Exception:
             traceback.print_exc()
 
     def data_download(self):
         """Handles downloading of dataset from external sources if not already downloaded."""
         try:
             if os.path.exists(RAW_DATA_PATH):
-                logging.info("Raw data already exists, skipping download.")
+                print("Raw data already exists, skipping download.")
                 return
 
-            logging.info("Starting data download...")
+            print("Starting data download...")
             DataDownloader(url=self.dataset_url)
-            #downloader.download()  # Ensure `download()` exists in DataDownloader
-            logging.info("Data downloaded and saved at: %s", RAW_DATA_PATH)
-        except Exception as e:
-            logging.error("Data download failed: %s", e)
+            print(f"Data downloaded and saved at: {RAW_DATA_PATH}")
+        except Exception:
+            print("Data download failed:")
             traceback.print_exc()
 
     def data_preprocessing(self):
         """Handles data preprocessing pipeline if not already processed."""
         try:
             if os.path.exists(CLEANED_DATA_PATH):
-                logging.info("Cleaned data already exists, skipping preprocessing.")
+                print("Cleaned data already exists, skipping preprocessing.")
                 return
 
-            logging.info("Starting data preprocessing...")
+            print("Starting data preprocessing...")
             preprocessor = DataPreprocessor(dataset_path=RAW_DATA_PATH)
             preprocessor.process_data()
-            logging.info("Data preprocessing complete. Cleaned dataset saved at: %s", CLEANED_DATA_PATH)
-        except Exception as e:
-            logging.error("Data preprocessing failed: %s", e)
+            print(f"Data preprocessing complete. Cleaned dataset saved at: {CLEANED_DATA_PATH}")
+        except Exception:
+            print("Data preprocessing failed:")
             traceback.print_exc()
 
     def load_dataset(self):
@@ -87,25 +78,25 @@ class FullWorkflow:
         try:
             if os.path.exists(CLEANED_DATA_PATH):
                 self.dataset = utils.retrieve_data(CLEANED_DATA_PATH)
-                logging.info("Dataset successfully loaded from: %s", CLEANED_DATA_PATH)
+                print(f"Dataset successfully loaded from: {CLEANED_DATA_PATH}")
             else:
                 raise FileNotFoundError(f"Dataset not found at {CLEANED_DATA_PATH}")
-        except Exception as e:
-            logging.error("Failed to load dataset: %s", e)
+        except Exception:
+            print("Failed to load dataset:")
             traceback.print_exc()
 
     def clustering(self):
         """Performs clustering on survey data."""
         try:
             if self.dataset is not None:
-                logging.info("Starting clustering process...")
+                print("Starting clustering process...")
                 clustering_model = ClusteringModel(dataset=self.dataset)
                 clustering_model.assign_clusters()
-                logging.info("Clustering completed successfully.")
+                print("Clustering completed successfully.")
             else:
-                logging.error("Clustering aborted: Dataset is not loaded.")
-        except Exception as e:
-            logging.error("Error in clustering process: %s", e)
+                print("Clustering aborted: Dataset is not loaded.")
+        except Exception:
+            print("Error in clustering process:")
             traceback.print_exc()
 
 
@@ -114,5 +105,6 @@ if __name__ == "__main__":
     workflow = FullWorkflow(
         dataset_url=GOOGLE_DRIVE_URL,
         skip_download=True,
-        skip_preprocessing=True
+        skip_preprocessing=True,
+        skip_clustering=True
     )
