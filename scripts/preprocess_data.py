@@ -3,7 +3,6 @@ import os
 import time
 from tqdm import tqdm
 
-
 class DataPreprocessor:
     def __init__(self, dataset_path: str, output_path: str = './data/cleaned_data_v2.csv'):
         self.dataset_path = dataset_path
@@ -108,5 +107,4 @@ class DataPreprocessor:
         """Helper function to format time"""
         m, s = divmod(seconds, 60)
         return f"{int(m)} min {int(s)} sec"
-
 
