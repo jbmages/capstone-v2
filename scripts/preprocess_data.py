@@ -3,6 +3,7 @@ import os
 import time
 from tqdm import tqdm
 
+
 class DataPreprocessor:
     def __init__(self, dataset_path: str, output_path: str = './data/cleaned_data_v2.csv'):
         self.dataset_path = dataset_path

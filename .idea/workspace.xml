@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="updated main">
-      <change afterPath="$PROJECT_DIR$/scripts/utils.py" afterDir="false" />
+    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="clustering script data prep">
+      <change afterPath="$PROJECT_DIR$/scripts/workflow.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/cluster.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cluster.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/preprocess_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/preprocess_data.py" afterDir="false" />
     </list>
@@ -154,7 +153,14 @@
       <option name="project" value="LOCAL" />
       <updated>1743279004025</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="clustering script data prep">
+      <created>1743284971998</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1743284971998</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -176,18 +182,25 @@
     <MESSAGE value="create clustering script" />
     <MESSAGE value="requirements" />
     <MESSAGE value="updated main" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated main" />
+    <MESSAGE value="clustering script data prep" />
+    <option name="LAST_COMMIT_MESSAGE" value="clustering script data prep" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/main.py</url>
+          <line>3</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/scripts/cluster.py</url>
           <option name="timeStamp" value="3" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/scripts/preprocess_data.py</url>
+          <line>26</line>
+          <option name="timeStamp" value="4" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
