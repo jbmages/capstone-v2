@@ -9,6 +9,7 @@ class DataDownloader:
         self.download_data()
 
     def download_data(self):
+        """ Download data from google drive link """
         if not os.path.exists(self.target_folder):
             os.makedirs(self.target_folder)
 

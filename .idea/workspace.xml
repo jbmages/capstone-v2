@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="data pre-processing">
-      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
+    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="&#10;readme update">
+      <change afterPath="$PROJECT_DIR$/scripts/cluster.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/download_data.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/download_data.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -20,6 +22,7 @@
     </option>
   </component>
   <component name="Git.Settings">
+    <option name="PREVIEW_PUSH_PROTECTED_ONLY" value="true" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -120,7 +123,14 @@
       <option name="project" value="LOCAL" />
       <updated>1743198586525</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="&#10;readme update">
+      <created>1743199012927</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1743199012927</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -138,7 +148,8 @@
     <MESSAGE value="initial commit" />
     <MESSAGE value="creating files" />
     <MESSAGE value="data pre-processing" />
-    <option name="LAST_COMMIT_MESSAGE" value="data pre-processing" />
+    <MESSAGE value="&#10;readme update" />
+    <option name="LAST_COMMIT_MESSAGE" value="&#10;readme update" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
