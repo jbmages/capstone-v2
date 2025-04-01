@@ -60,6 +60,3 @@ class ClusteringModel:
         self.data.to_csv('data/data_with_clusters.csv', index=False)
 
         print("Clustering complete. Data saved as 'cleaned_data_with_clusters.csv'.")
-
-
-        pass  # Implement clustering logic later
