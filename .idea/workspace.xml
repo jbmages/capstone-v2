@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="update gitignore">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dashboard/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/dashboard/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cluster.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cluster.py" afterDir="false" />
+    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="working webpage!">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -237,7 +235,14 @@
       <option name="project" value="LOCAL" />
       <updated>1743472671041</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="working webpage!">
+      <created>1743536078455</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1743536078455</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -268,7 +273,8 @@
     <MESSAGE value="d3 root line fix" />
     <MESSAGE value="to json function" />
     <MESSAGE value="update gitignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="update gitignore" />
+    <MESSAGE value="working webpage!" />
+    <option name="LAST_COMMIT_MESSAGE" value="working webpage!" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
