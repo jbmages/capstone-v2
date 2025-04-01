@@ -1,26 +1,17 @@
-// Load the dataset
-d3.csv("../data/data_with_clusters.csv").then(function(data) {
-    console.log("Raw Data Loaded:", data);
+// Load the JSON dataset
+d3.json("data/cluster_data.json").then(function(data) {
+    console.log("Data Loaded:", data);
 
+    // Check if data is loaded
     if (!data || data.length === 0) {
-        console.error("Error: No data loaded. Check your CSV path or format.");
+        console.error("Error: No data loaded. Check your JSON path or format.");
         return;
     }
 
-    // Extract first 50 columns + last 2 (cluster assignments)
-    let allColumns = Object.keys(data[0]);
-    console.log("All Columns Detected:", allColumns);
+    // Subset the first 50 columns + last 2 (cluster assignments)
+    let columns = Object.keys(data[0]).slice(0, 50).concat(["KMeans_Cluster", "GMM_Cluster"]);
 
-    // Ensure "KMeans_Cluster" and "GMM_Cluster" exist
-    let clusterColumns = ["KMeans_Cluster", "GMM_Cluster"].filter(col => allColumns.includes(col));
-
-    if (clusterColumns.length < 2) {
-        console.error("Error: Cluster columns not found in dataset.");
-        return;
-    }
-
-    let selectedColumns = allColumns.slice(0, 50).concat(clusterColumns);
-    console.log("Columns Selected:", selectedColumns);
+    console.log("Columns Extracted:", columns);
 
     // Select the table container
     let table = d3.select("#data-table").append("table").attr("class", "styled-table");
@@ -31,7 +22,7 @@ d3.csv("../data/data_with_clusters.csv").then(function(data) {
 
     thead.append("tr")
         .selectAll("th")
-        .data(selectedColumns)
+        .data(columns)
         .enter()
         .append("th")
         .text(d => d);
@@ -39,12 +30,12 @@ d3.csv("../data/data_with_clusters.csv").then(function(data) {
     // Populate the table with rows
     data.forEach(row => {
         let tr = tbody.append("tr");
-        selectedColumns.forEach(col => {
+        columns.forEach(col => {
             tr.append("td").text(row[col]);
         });
     });
 
     console.log("Table rendered.");
-}).catch(error => {
-    console.error("Error loading CSV file:", error);
+}).catch(function(error) {
+    console.error("Error loading the JSON file:", error);
 });

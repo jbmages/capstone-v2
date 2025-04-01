@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="d3 root line fix">
+    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="to json function">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dashboard/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/dashboard/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/cluster.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cluster.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -223,7 +225,14 @@
       <option name="project" value="LOCAL" />
       <updated>1743470681312</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="to json function">
+      <created>1743471394256</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1743471394256</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -252,7 +261,8 @@
     <MESSAGE value="clustering predictive script added" />
     <MESSAGE value="dashboard files added" />
     <MESSAGE value="d3 root line fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="d3 root line fix" />
+    <MESSAGE value="to json function" />
+    <option name="LAST_COMMIT_MESSAGE" value="to json function" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

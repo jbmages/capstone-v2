@@ -76,8 +76,10 @@ class ClusteringModel:
         print("Converting to JSON...")
         data_json = df_subset.to_dict(orient="records")
 
-        # Define output path
-        output_json = "dashboard/data/data_with_clusters.json"
+        # Define output path and ensure the directory exists
+        output_dir = "dashboard/data"
+        os.makedirs(output_dir, exist_ok=True)  # Ensure directory exists before saving
+        output_json = os.path.join(output_dir, "cluster_data.json")
 
         # Save JSON file
         with open(output_json, "w") as f:
@@ -87,7 +89,7 @@ class ClusteringModel:
         file_size = os.path.getsize(output_json) / (1024 * 1024)  # Convert to MB
         end_time = time.time()
 
-        print(f"JSON saved at {output_json} ({file_size:.2f} MB)")
-        print(f"Process took {end_time - start_time:.2f} seconds")
+        print(f"✅ JSON saved at {output_json} ({file_size:.2f} MB)")
+        print(f"⏳ Process took {end_time - start_time:.2f} seconds")
 
         return output_json  # Return file path if needed

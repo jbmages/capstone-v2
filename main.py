@@ -44,6 +44,8 @@ class FullWorkflow:
         except Exception:
             traceback.print_exc()
 
+
+
     def data_download(self):
         """Handles downloading of dataset from external sources if not already downloaded."""
         try:
@@ -92,6 +94,7 @@ class FullWorkflow:
                 print("Starting clustering process...")
                 clustering_model = ClusteringModel(dataset=self.dataset)
                 clustering_model.assign_clusters()
+                clustering_model.csv_to_json()
                 print("Clustering completed successfully.")
             else:
                 print("Clustering aborted: Dataset is not loaded.")
@@ -106,5 +109,5 @@ if __name__ == "__main__":
         dataset_url=GOOGLE_DRIVE_URL,
         skip_download=True,
         skip_preprocessing=True,
-        skip_clustering=True
+        skip_clustering=False
     )
