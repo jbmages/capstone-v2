@@ -1,5 +1,5 @@
 // Load the dataset
-d3.csv("data/data_with_clusters.csv").then(function(data) {
+d3.csv("../data/data_with_clusters.csv").then(function(data) {
     console.log("Data Loaded:", data);
 
     // Subset the first 50 columns + last 2 (cluster assignments)
