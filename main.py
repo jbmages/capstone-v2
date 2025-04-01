@@ -39,8 +39,8 @@ class FullWorkflow:
 
             self.load_dataset()
 
-
-            self.clustering()
+            if not skip_clustering:
+                self.clustering()
         except Exception:
             traceback.print_exc()
 
