@@ -27,8 +27,8 @@ class DataPreprocessor:
         start_time = time.time()
 
         # Fix the dataset path if the script is in another folder
-        dataset_path = os.path.join(self.dataset_path, 'data-final.csv')
-        self.data = pd.read_csv(dataset_path)
+        #dataset_path = os.path.join(self.dataset_path, 'data-final.csv')
+        self.data = pd.read_csv(self.dataset_path)
 
         rows = []
         cols = self.data.columns[0].split('\t')
@@ -81,7 +81,6 @@ class DataPreprocessor:
     def remove_nan(self):
         """Remove rows with NaN values in survey answers"""
         print("Removing rows with NaN values in survey answers...")
-        print(self.data)
         start_time = time.time()
 
         # Select the first 50 columns as the subset of interest

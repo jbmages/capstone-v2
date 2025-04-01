@@ -7,5 +7,3 @@ class ClusterPredictor:
         # initialize clustering predictive model
         self.data = data
         self.model = model
-
-

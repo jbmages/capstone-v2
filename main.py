@@ -109,7 +109,7 @@ class FullWorkflow:
 if __name__ == "__main__":
     workflow = FullWorkflow(
         dataset_url=GOOGLE_DRIVE_URL,
-        skip_download=True,
-        skip_preprocessing=True,
+        skip_download=False,
+        skip_preprocessing=False,
         skip_clustering=False
     )
