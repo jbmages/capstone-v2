@@ -5,6 +5,9 @@ from sklearn.preprocessing import StandardScaler
 import scripts.utils as utils
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.mixture import GaussianMixture
+import json
+import os
+import time
 
 
 class ClusteringModel:
@@ -60,3 +63,31 @@ class ClusteringModel:
         self.data.to_csv('data/data_with_clusters.csv', index=False)
 
         print("Clustering complete. Data saved as 'cleaned_data_with_clusters.csv'.")
+
+    def csv_to_json(self):
+        """Send cluster data to dashboard data folder"""
+        start_time = time.time()
+
+        # Select the first 50 columns + the last 2 (cluster assignments)
+        selected_columns = list(self.data.columns[:50]) + ["KMeans_Cluster", "GMM_Cluster"]
+        df_subset = self.data[selected_columns]
+
+        # Convert to JSON format
+        print("Converting to JSON...")
+        data_json = df_subset.to_dict(orient="records")
+
+        # Define output path
+        output_json = "dashboard/data/data_with_clusters.json"
+
+        # Save JSON file
+        with open(output_json, "w") as f:
+            json.dump(data_json, f, indent=2)
+
+        # Get file size
+        file_size = os.path.getsize(output_json) / (1024 * 1024)  # Convert to MB
+        end_time = time.time()
+
+        print(f"JSON saved at {output_json} ({file_size:.2f} MB)")
+        print(f"Process took {end_time - start_time:.2f} seconds")
+
+        return output_json  # Return file path if needed

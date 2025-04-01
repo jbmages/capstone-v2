@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="clustering predictive script added">
-      <change afterPath="$PROJECT_DIR$/dashboard/app.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dashboard/index.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dashboard/style.css" afterDir="false" />
+    <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="d3 root line fix">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dashboard/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/dashboard/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/cluster.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cluster.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -203,7 +202,28 @@
       <option name="project" value="LOCAL" />
       <updated>1743470093378</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="dashboard files added">
+      <created>1743470406296</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1743470406296</updated>
+    </task>
+    <task id="LOCAL-00016" summary="dashboard files added">
+      <created>1743470466405</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1743470466405</updated>
+    </task>
+    <task id="LOCAL-00017" summary="d3 root line fix">
+      <created>1743470681311</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1743470681312</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -230,7 +250,9 @@
     <MESSAGE value="undid workflow" />
     <MESSAGE value="clustering infrastructure" />
     <MESSAGE value="clustering predictive script added" />
-    <option name="LAST_COMMIT_MESSAGE" value="clustering predictive script added" />
+    <MESSAGE value="dashboard files added" />
+    <MESSAGE value="d3 root line fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="d3 root line fix" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
