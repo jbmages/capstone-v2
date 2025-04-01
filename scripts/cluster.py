@@ -64,17 +64,21 @@ class ClusteringModel:
 
         print("Clustering complete. Data saved as 'cleaned_data_with_clusters.csv'.")
 
-    def csv_to_json(self):
-        """Send cluster data to dashboard data folder"""
+    def csv_to_json(self, sample_frac=0.1, max_rows=10000):
+        """Send a reduced cluster data JSON file to the dashboard folder"""
         start_time = time.time()
 
-        # Select the first 50 columns + the last 2 (cluster assignments)
+        # Select relevant columns (first 50 + last 2 for clustering info)
         selected_columns = list(self.data.columns[:50]) + ["KMeans_Cluster", "GMM_Cluster"]
         df_subset = self.data[selected_columns]
 
+        # Randomly sample 10% of the data, but no more than max_rows
+        num_rows = min(int(len(df_subset) * sample_frac), max_rows)
+        df_sample = df_subset.sample(n=num_rows, random_state=42)  # Fix seed for reproducibility
+
         # Convert to JSON format
-        print("Converting to JSON...")
-        data_json = df_subset.to_dict(orient="records")
+        print(f"Converting {num_rows}/{len(df_subset)} rows to JSON...")
+        data_json = df_sample.to_dict(orient="records")
 
         # Define output path and ensure the directory exists
         output_dir = "dashboard/data"
@@ -89,7 +93,7 @@ class ClusteringModel:
         file_size = os.path.getsize(output_json) / (1024 * 1024)  # Convert to MB
         end_time = time.time()
 
-        print(f"✅ JSON saved at {output_json} ({file_size:.2f} MB)")
-        print(f"⏳ Process took {end_time - start_time:.2f} seconds")
+        print(f"JSON saved at {output_json} ({file_size:.2f} MB)")
+        print(f"Process took {end_time - start_time:.2f} seconds")
 
         return output_json  # Return file path if needed
