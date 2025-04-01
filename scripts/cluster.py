@@ -81,7 +81,7 @@ class ClusteringModel:
         data_json = df_sample.to_dict(orient="records")
 
         # Define output path and ensure the directory exists
-        output_dir = "dashboard/data"
+        output_dir = "dashboard/dash-data"
         os.makedirs(output_dir, exist_ok=True)  # Ensure directory exists before saving
         output_json = os.path.join(output_dir, "cluster_data.json")
 
