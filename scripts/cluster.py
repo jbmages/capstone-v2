@@ -7,8 +7,8 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.mixture import GaussianMixture
 
 
-
 class ClusteringModel:
+
     def __init__(self, dataset: pd.DataFrame):
         """Initialize clustering model object"""
         print('initiating modeling infrastructure')
