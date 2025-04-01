@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 .DS_Store
 logs/
+scoring/scoring_inst.html
+scoring/scoring_rubric.rtf
+scoring/scoring_webpage.html
