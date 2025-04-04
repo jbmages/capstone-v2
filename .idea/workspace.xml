@@ -5,8 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="7f0de387-0054-4a8e-92fd-0288f0b7fea6" name="Changes" comment="working webpage!">
-      <change beforePath="$PROJECT_DIR$/dashboard/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/dashboard/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/cluster.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/cluster.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
