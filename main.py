@@ -7,6 +7,8 @@ import scripts.utils as utils
 
 # adding some random stuff to test cli pushing
 
+# lets get working!
+
 GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0Gga4Rvo5iDrHuHBFGgrP'
 
 # Define paths
