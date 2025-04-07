@@ -63,3 +63,7 @@ window.drawHistogram = function(svg, data, column, clusterMethod, color, x, y) {
         .style("font-size", "16px")
         .text(`Distribution of ${column} by ${clusterMethod}`);
 }
+
+
+
+

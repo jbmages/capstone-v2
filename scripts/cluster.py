@@ -70,15 +70,15 @@ class ClusteringModel:
         id_to_question = dict(zip(self.scoring['id'], self.scoring['trait']))
 
         # Get the first 50 column names
-        original_cols = self.data.columns[:50]
+        original_cols = list(self.data.columns[:50])
 
-        # Replace column names using the mapping
-        new_cols = [id_to_question.get(col, col) for col in original_cols]
+        # Build new column names in the format "EXT9: I am the life of the party"
+        new_cols = [f"{col}: {id_to_question[col]}" if col in id_to_question else col for col in original_cols]
 
-        # Assign new column names
+        # Assign new column names to the DataFrame
         self.data.columns = new_cols + list(self.data.columns[50:])
 
-        print('question names assigned to data')
+        print("question names assigned to data")
         return
 
 
