@@ -3,7 +3,7 @@ import pandas as pd
 
 class ClusterPredictor:
 
-    def __init__(self, data, model):
+    def __init__(self, data):
         # initialize clustering predictive model
         self.data = data
-        self.model = model
+

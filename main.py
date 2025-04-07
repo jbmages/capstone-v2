@@ -3,6 +3,7 @@ import traceback
 from scripts.download_data import DataDownloader
 from scripts.preprocess_data import DataPreprocessor
 from scripts.cluster import ClusteringModel
+from scripts.cluster_prediction import ClusterPredictor
 import scripts.utils as utils
 
 # adding some random stuff to test cli pushing
@@ -14,6 +15,7 @@ GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0
 # Define paths
 RAW_DATA_PATH = 'data/data-final.csv'
 CLEANED_DATA_PATH = 'data/cleaned_data_v2.csv'
+CLUSTERED_DATA_PATH = 'data/data_with_clusters.csv'
 
 
 class FullWorkflow:
@@ -23,7 +25,7 @@ class FullWorkflow:
     """
 
     def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True,
-                 skip_clustering = False):
+                 skip_clustering = False, skip_predictive = False):
         """
         Initializes the full workflow.
 
@@ -46,11 +48,12 @@ class FullWorkflow:
             if not skip_clustering:
                 self.clustering()
 
+            if not skip_predictive:
+                self.cluster_predictiion()
+
 
         except Exception:
             traceback.print_exc()
-
-
 
     def data_download(self):
         """Handles downloading of dataset from external sources if not already downloaded."""
@@ -110,6 +113,16 @@ class FullWorkflow:
             print("Error in clustering process:")
             traceback.print_exc()
 
+    def cluster_prediction(self):
+        """ Runs cluster prediction algorithm """
+        try:
+            if os.path.exists(CLUSTERED_DATA_PATH):
+                cluster_p_model = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH))
+
+        except Exception:
+            print('you suck. cluster prediction failed bruh...')
+            traceback.print_exc()
+
 
 # Example usage
 if __name__ == "__main__":
@@ -118,4 +131,5 @@ if __name__ == "__main__":
         skip_download=True,
         skip_preprocessing=True,
         skip_clustering=False
+
     )
