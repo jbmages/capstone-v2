@@ -22,9 +22,19 @@
 <body>
 
     <h1>Personality Clusters Data Table</h1>
+
+    <div id="clustering-method-container" style="margin: 20px;">
+    <label for="clusteringMethod">Clustering Method:</label>
+    <select id="clusteringMethod">
+        <option value="KMeans Cluster">KMeans Cluster</option>
+        <option value="GMM Cluster">GMM Cluster</option>
+    </select>
+    </div>
+
     <div id="data-table"></div>
 
     <script src="app.js"></script>
+
 
 </body>
 </html>
