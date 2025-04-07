@@ -1,4 +1,6 @@
 loadClusterData(function(data) {
+    
+
     const numericCols = Object.keys(data[0]).slice(0, 50);
     const clusterOptions = ['KMeans Cluster', 'GMM Cluster'];
 
@@ -27,6 +29,8 @@ loadClusterData(function(data) {
         drawHistogram(svg, data, column, clusterMethod, color, x, y);
         drawLegend(uniqueClusters, color);
     }
+
+    
 
     updateChart(); // Initial chart
 });

@@ -94,6 +94,9 @@ class ClusteringModel:
         num_rows = min(int(len(df_subset) * sample_frac), max_rows)
         df_sample = df_subset.sample(n=num_rows, random_state=42)  # Fix seed for reproducibility
 
+        df_sample["KMeans_Cluster"] = pd.to_numeric(df_sample["KMeans_Cluster"], errors="coerce")
+        df_sample["GMM_Cluster"] = pd.to_numeric(df_sample["GMM_Cluster"], errors="coerce")
+
         # Convert to JSON format
         print(f"Converting {num_rows}/{len(df_subset)} rows to JSON...")
         data_json = df_sample.to_dict(orient="records")

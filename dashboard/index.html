@@ -18,23 +18,27 @@
     }
 </style>
 
-
 <body>
-
     <h1>Personality Clusters Data Table</h1>
 
-    <div id="clustering-method-container" style="margin: 20px;">
-    <label for="clusteringMethod">Clustering Method:</label>
-    <select id="clusteringMethod">
-        <option value="KMeans Cluster">KMeans Cluster</option>
-        <option value="GMM Cluster">GMM Cluster</option>
-    </select>
+    <div id="dropdown-container">
+        <label for="clusterDropdown">Clustering Method:</label>
+        <select id="clusterDropdown"></select>
+
+        <label for="columnDropdown">Column:</label>
+        <select id="columnDropdown"></select>
     </div>
 
-    <div id="data-table"></div>
+    <div id="chart-container">
+        <svg id="chart" width="600" height="450"></svg>
+        <div id="legend" style="margin-top: 10px;"></div>
+    </div>
 
-    <script src="app.js"></script>
-
-
+    <!-- Load JS files -->
+    <script src="js/dataLoader.js"></script>
+    <script src="js/dropdowns.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/legend.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
