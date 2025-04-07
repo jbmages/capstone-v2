@@ -18,7 +18,7 @@ class ClusteringModel:
         self.data = dataset
 
         # Retrieve scoring table first
-        self.scoring_table = utils.retrieve_excel('scoring/scoring.xlsx')
+        self.scoring = utils.retrieve_excel('scoring/scoring.xlsx')
         print('scoring table correctly read in')
         # Prepare data segments
         self.survey_data, self.time_data, self.score_data = self.prep_data()
@@ -31,7 +31,7 @@ class ClusteringModel:
         """Prepare data segments for clustering"""
 
         print('preparing data for modeling')
-        survey_answer_cols = self.scoring_table['id'].tolist()
+        survey_answer_cols = self.scoring['id'].tolist()
         time_cols = [col + '_E' for col in survey_answer_cols]
         score_cols = ['O score', 'C score', 'E score', 'A score', 'N score']
 
@@ -63,6 +63,24 @@ class ClusteringModel:
         self.data.to_csv('data/data_with_clusters.csv', index=False)
 
         print("Clustering complete. Data saved as 'cleaned_data_with_clusters.csv'.")
+
+    def assign_question(self):
+        """Assign actual question names to the first 50 columns in self.data"""
+        # Create a mapping from id to question
+        id_to_question = dict(zip(self.scoring['id'], self.scoring['trait']))
+
+        # Get the first 50 column names
+        original_cols = self.data.columns[:50]
+
+        # Replace column names using the mapping
+        new_cols = [id_to_question.get(col, col) for col in original_cols]
+
+        # Assign new column names
+        self.data.columns = new_cols + list(self.data.columns[50:])
+
+        print('question names assigned to data')
+        return
+
 
     def csv_to_json(self, sample_frac=0.1, max_rows=10000):
         """Send a reduced cluster data JSON file to the dashboard folder"""

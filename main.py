@@ -45,6 +45,8 @@ class FullWorkflow:
 
             if not skip_clustering:
                 self.clustering()
+
+
         except Exception:
             traceback.print_exc()
 
@@ -98,7 +100,9 @@ class FullWorkflow:
                 print("Starting clustering process...")
                 clustering_model = ClusteringModel(dataset=self.dataset)
                 clustering_model.assign_clusters()
+                clustering_model.assign_question()
                 clustering_model.csv_to_json()
+
                 print("Clustering completed successfully.")
             else:
                 print("Clustering aborted: Dataset is not loaded.")
@@ -111,7 +115,7 @@ class FullWorkflow:
 if __name__ == "__main__":
     workflow = FullWorkflow(
         dataset_url=GOOGLE_DRIVE_URL,
-        skip_download=False,
-        skip_preprocessing=False,
+        skip_download=True,
+        skip_preprocessing=True,
         skip_clustering=False
     )
