@@ -53,11 +53,11 @@ class ClusteringModel:
 
         # Apply MiniBatch KMeans (6 clusters)
         kmeans = MiniBatchKMeans(n_clusters=6, random_state=42, batch_size=100)
-        self.data['KMeans Cluster'] = kmeans.fit_predict(self.score_data)
+        self.data['KMeans_Cluster'] = kmeans.fit_predict(self.score_data)
 
         # Apply Gaussian Mixture Model (5 clusters)
         gmm = GaussianMixture(n_components=5, random_state=42)
-        self.data['GMM Cluster'] = gmm.fit_predict(self.score_data)
+        self.data['GMM_Cluster'] = gmm.fit_predict(self.score_data)
 
         # Save the updated dataset with cluster assignments
         self.data.to_csv('data/data_with_clusters.csv', index=False)
