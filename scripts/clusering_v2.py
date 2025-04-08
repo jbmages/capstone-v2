@@ -38,15 +38,27 @@ class ImprovedClusteringModel:
 
         scaler = StandardScaler()
 
-        survey_data = self.data[survey_answer_cols] if all(col in self.data.columns for col in survey_answer_cols) else None
-        time_data = self.data[time_cols] if all(col in self.data.columns for col in time_cols) else None
-        score_data = self.data[score_cols] if all(col in self.data.columns for col in score_cols) else None
+        segments = ['Survey Data', 'Time Data', 'Score Data']
+        transformed_segments = []
 
-        return (
-            scaler.fit_transform(survey_data) if survey_data is not None else None,
-            scaler.fit_transform(time_data) if time_data is not None else None,
-            scaler.fit_transform(score_data) if score_data is not None else None
-        )
+        for segment in tqdm(segments, desc="Scaling data segments"):
+            if segment == 'Survey Data':
+                if all(col in self.data.columns for col in survey_answer_cols):
+                    transformed_segments.append(scaler.fit_transform(self.data[survey_answer_cols]))
+                else:
+                    transformed_segments.append(None)
+            elif segment == 'Time Data':
+                if all(col in self.data.columns for col in time_cols):
+                    transformed_segments.append(scaler.fit_transform(self.data[time_cols]))
+                else:
+                    transformed_segments.append(None)
+            elif segment == 'Score Data':
+                if all(col in self.data.columns for col in score_cols):
+                    transformed_segments.append(scaler.fit_transform(self.data[score_cols]))
+                else:
+                    transformed_segments.append(None)
+
+        return tuple(transformed_segments)
 
     def get_active_data(self):
         if self.mode == 'survey':
@@ -73,28 +85,33 @@ class ImprovedClusteringModel:
         best_labels = None
         best_method = None
 
-        for k in range(2, 10):
+        print("Running KMeans and GMM clustering...")
+        for k in tqdm(range(2, 10), desc="KMeans & GMM", position=0):
+            # KMeans
             kmeans = MiniBatchKMeans(n_clusters=k, random_state=42)
             kmeans_labels = kmeans.fit_predict(data)
             eval_kmeans = self.evaluate_clustering(data, f'KMeans_k={k}', kmeans_labels)
             results.append(eval_kmeans)
 
+            # GMM
             gmm = GaussianMixture(n_components=k, random_state=42)
             gmm_labels = gmm.fit_predict(data)
             eval_gmm = self.evaluate_clustering(data, f'GMM_k={k}', gmm_labels)
             results.append(eval_gmm)
 
-        for eps in [0.3, 0.5, 0.7]:
-            for min_samples in [3, 5]:
-                dbscan = DBSCAN(eps=eps, min_samples=min_samples)
-                try:
-                    db_labels = dbscan.fit_predict(data)
-                    eval_db = self.evaluate_clustering(data, f'DBSCAN_eps={eps}_min={min_samples}', db_labels)
-                    results.append(eval_db)
-                except Exception as e:
-                    print(f"DBSCAN failed for eps={eps}, min_samples={min_samples}: {e}")
+        print("Running DBSCAN clustering...")
+        dbscan_params = [(e, m) for e in [0.3, 0.5, 0.7] for m in [3, 5]]
+        for eps, min_samples in tqdm(dbscan_params, desc="DBSCAN", position=1):
+            dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+            try:
+                db_labels = dbscan.fit_predict(data)
+                eval_db = self.evaluate_clustering(data, f'DBSCAN_eps={eps}_min={min_samples}', db_labels)
+                results.append(eval_db)
+            except Exception as e:
+                print(f"DBSCAN failed for eps={eps}, min_samples={min_samples}: {e}")
 
-        for res in results:
+        print("Selecting best clustering method...")
+        for res in tqdm(results, desc="Scoring results", position=2):
             if res['silhouette'] > best_score:
                 best_score = res['silhouette']
                 best_labels = res['labels']
@@ -102,8 +119,8 @@ class ImprovedClusteringModel:
 
         self.data['BestCluster'] = best_labels
         self.best_method = best_method
-        if not self.max_r_bool:
-            self.data.to_csv(f'data/data_with_best_clusters_{self.mode}.csv', index=False)
+
+        self.data.to_csv(f'data/data_with_best_clusters_{self.mode}.csv', index=False)
         print(f"Best clustering method: {best_method} with silhouette score: {best_score:.3f} (mode: {self.mode})")
         return results
 

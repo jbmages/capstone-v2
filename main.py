@@ -124,7 +124,8 @@ class FullWorkflow:
             if self.dataset is not None:
                 print("Starting clustering process...")
                 cluster_model = ImprovedClusteringModel(dataset=self.dataset,
-                                                        scoring=self.scoring,mode=mode)
+                                                        scoring=self.scoring,mode=mode,
+                                                        max_rows=20000)
                 results = cluster_model.assign_clusters()
                 eval = cluster_model.evaluate_clustering(skip_sil=True)
                 print(eval)
