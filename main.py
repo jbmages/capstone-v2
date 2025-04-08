@@ -120,8 +120,16 @@ class FullWorkflow:
         """ Runs cluster prediction algorithm """
         try:
             if os.path.exists(CLUSTERED_DATA_PATH):
-                cluster_p_model = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH),
+
+                predictor = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH),
                                                    scoring=self.scoring)
+                predictor.train_all()
+                importance_df = predictor.get_feature_importance('Random Forest')
+                print(importance_df.head(10))  # top 10 most influential questions
+                predictor.save_models()
+
+
+
 
         except Exception:
             print('you suck. cluster prediction failed bruh...')
@@ -133,7 +141,7 @@ if __name__ == "__main__":
     workflow = FullWorkflow(
         dataset_url=GOOGLE_DRIVE_URL,
         skip_download=True,
-        skip_preprocessing=False,
-        skip_clustering=False,
+        skip_preprocessing=True,
+        skip_clustering=True,
         skip_predictive=False
     )

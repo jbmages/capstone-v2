@@ -34,9 +34,10 @@ class ClusterPredictor:
         new_cols = [f"{col}: {id_to_question.get(col, '')}" for col in original_cols]
         self.data.columns = new_cols + list(self.data.columns[50:])
 
-        # Remove max cluster value
+        # Remove max cluster valu  e
         max_val = self.data[self.cluster_type].max()
         original_count = len(self.data)
+        print('DATASET LENGTH', original_count)
         self.filtered_data = self.data[self.data[self.cluster_type] != max_val]
         print(f"Filtered out {original_count - len(self.filtered_data)} rows ({(original_count - len(self.filtered_data))/original_count:.2%})")
 
