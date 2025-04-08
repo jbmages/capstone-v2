@@ -6,6 +6,7 @@ from scripts.cluster import ClusteringModel
 from scripts.cluster_prediction import ClusterPredictor
 from scripts.clusering_v2 import ImprovedClusteringModel
 import scripts.utils as utils
+from scripts.region_prediction import PredictiveModel 
 
 
 GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0Gga4Rvo5iDrHuHBFGgrP'
@@ -24,7 +25,7 @@ class FullWorkflow:
 
     def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True,
                  skip_clustering=False, skip_predictive=True, use_clustering_v2=True,
-                 use_prediction_v2=True):
+                 use_prediction_v2=True, skip_region_predictive=False):
         """
         Initializes the full workflow.
 
@@ -58,6 +59,9 @@ class FullWorkflow:
                     self.clustering_v2()
                 else:
                     self.cluster_prediction()
+
+            if not skip_region_predictive:
+                self.predictive_modeling()
 
 
         except Exception:
@@ -161,10 +165,23 @@ class FullWorkflow:
 
                 # Optional: Stepwise analysis (logistic or random_forest)
                 predictor.stepwise_feature_analysis(top_n=10, model_type='logistic')
-
         except Exception:
             print('you suck. cluster prediction failed bruh...')
             traceback.print_exc()
+
+    def predictive_modeling(self):
+            "Runs the predictive model"""
+            try:
+                if self.dataset is not None:
+                    print("Starting predictive model...")
+                    model = PredictiveModel(self.dataset)
+                    model.run()
+                    print("Predictive model completed.")
+                else:
+                    print("Predictive modeling didn't work: Dataset is not loaded.")
+            except Exception:
+                print("Error in predictive modeling:")
+                traceback.print_exc()
 
         def cluster_prediction_v2(self):
             """ Runs cluster prediction algorithm """
@@ -197,4 +214,6 @@ if __name__ == "__main__":
         skip_predictive=True,
         use_clustering_v2=True,
         use_prediction_v2=True
+        skip_region_predictive=False
+
     )
