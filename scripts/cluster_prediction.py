@@ -11,6 +11,9 @@ import joblib
 import os
 import time
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 class ClusterPredictor:
     def __init__(self, data, scoring, cluster_type='KMeans_Cluster', test_size=0.2, use_subset=True, subset_size=100000):
         self.data = data.copy()
@@ -112,3 +115,17 @@ class ClusterPredictor:
 
         return importance_df
 
+
+
+    def plot_model_accuracies(accuracy_scores):
+        plt.figure(figsize=(8, 5))
+        sns.barplot(x=list(accuracy_scores.keys()), y=list(accuracy_scores.values()), palette="viridis")
+        plt.title("Model Accuracy Comparison")
+        plt.ylabel("Accuracy")
+        plt.ylim(0, 1)
+        plt.xticks(rotation=15)
+        plt.grid(axis='y', linestyle='--', alpha=0.7)
+        for i, acc in enumerate(accuracy_scores.values()):
+            plt.text(i, acc + 0.01, f"{acc:.2%}", ha='center', fontsize=10, fontweight='bold')
+        plt.tight_layout()
+        plt.show()
