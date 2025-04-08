@@ -92,7 +92,7 @@ class ImprovedClusteringModel:
             kmeans_labels = kmeans.fit_predict(data)
             eval_kmeans = self.evaluate_clustering(data, f'KMeans_k={k}', kmeans_labels)
             results.append(eval_kmeans)
-
+            print('onto gmm for this k')
             # GMM
             gmm = GaussianMixture(n_components=k, random_state=42)
             gmm_labels = gmm.fit_predict(data)
