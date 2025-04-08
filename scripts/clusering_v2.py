@@ -16,9 +16,13 @@ import scripts.utils as utils
 
 class ImprovedClusteringModel:
 
-    def __init__(self, dataset: pd.DataFrame, scoring, mode='score'):
+    def __init__(self, dataset: pd.DataFrame, scoring, mode='score', max_rows=-1):
         """Initialize clustering model object"""
         print('Initiating modeling infrastructure...')
+        self.max_rows = max_rows
+        self.max_r_bool = max_rows > 0
+        if self.max_r_bool:
+            self.data = dataset.sample(n=max_rows, random_state=42).copy()
         self.data = dataset
         self.scoring = scoring
         self.mode = mode
@@ -52,9 +56,12 @@ class ImprovedClusteringModel:
         else:
             return self.score_data
 
-    def evaluate_clustering(self, data, method_name, labels):
+    def evaluate_clustering(self, data, method_name, labels, skip_sil=False):
         """Calculate evaluation metrics for a clustering result"""
-        sil_score = silhouette_score(data, labels) if len(set(labels)) > 1 else -1
+        if not skip_sil:
+            sil_score = silhouette_score(data, labels) if len(set(labels)) > 1 else -1
+        else:
+            sil_score = -1
         db_score = davies_bouldin_score(data, labels) if len(set(labels)) > 1 else float('inf')
         return {'method': method_name, 'silhouette': sil_score, 'davies_bouldin': db_score, 'labels': labels}
 
@@ -95,8 +102,8 @@ class ImprovedClusteringModel:
 
         self.data['BestCluster'] = best_labels
         self.best_method = best_method
-
-        self.data.to_csv(f'data/data_with_best_clusters_{self.mode}.csv', index=False)
+        if not self.max_r_bool:
+            self.data.to_csv(f'data/data_with_best_clusters_{self.mode}.csv', index=False)
         print(f"Best clustering method: {best_method} with silhouette score: {best_score:.3f} (mode: {self.mode})")
         return results
 

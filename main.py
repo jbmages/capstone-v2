@@ -126,6 +126,8 @@ class FullWorkflow:
                 cluster_model = ImprovedClusteringModel(dataset=self.dataset,
                                                         scoring=self.scoring,mode=mode)
                 results = cluster_model.assign_clusters()
+                eval = cluster_model.evaluate_clustering(skip_sil=True)
+                print(eval)
                 cluster_model.visualize_results(results)
                 cluster_model.csv_to_json()
                 #json_path = cluster_model.csv_to_json()
@@ -158,7 +160,6 @@ class FullWorkflow:
         except Exception:
             print('you suck. cluster prediction failed bruh...')
             traceback.print_exc()
-
 
 
 if __name__ == "__main__":
