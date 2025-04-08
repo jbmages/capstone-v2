@@ -23,7 +23,8 @@ class FullWorkflow:
     """
 
     def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True,
-                 skip_clustering=False, skip_predictive=True, use_clustering_v2=True):
+                 skip_clustering=False, skip_predictive=True, use_clustering_v2=True,
+                 use_prediction_v2=True):
         """
         Initializes the full workflow.
 
@@ -53,7 +54,10 @@ class FullWorkflow:
                     self.clustering()
 
             if not skip_predictive:
-                self.cluster_prediction()
+                if use_prediction_v2:
+                    self.clustering_v2()
+                else:
+                    self.cluster_prediction()
 
 
         except Exception:
@@ -162,6 +166,27 @@ class FullWorkflow:
             print('you suck. cluster prediction failed bruh...')
             traceback.print_exc()
 
+        def cluster_prediction_v2(self):
+            """ Runs cluster prediction algorithm """
+            try:
+                if os.path.exists(CLUSTERED_DATA_PATH):
+                    predictor = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH),
+                                                 scoring=self.scoring)
+                    predictor.train_all()
+
+                    # Plot accuracies
+                    predictor.plot_model_accuracies()
+
+                    # Optional: Save models
+                    predictor.save_models()
+
+                    # Optional: Stepwise analysis (logistic or random_forest)
+                    predictor.stepwise_feature_analysis(top_n=10, model_type='logistic')
+
+            except Exception:
+                print('you suck. cluster prediction failed bruh...')
+                traceback.print_exc()
+
 
 if __name__ == "__main__":
     workflow = FullWorkflow(
@@ -170,5 +195,6 @@ if __name__ == "__main__":
         skip_preprocessing=True,
         skip_clustering=False,
         skip_predictive=True,
-        use_clustering_v2=True
+        use_clustering_v2=True,
+        use_prediction_v2=True
     )
