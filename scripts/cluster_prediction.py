@@ -1,6 +1,15 @@
 import pandas as pd
-
-
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, classification_report
+from tqdm.notebook import tqdm
+import time
+import os
+import joblib
 class ClusterPredictor:
 
     def __init__(self, data, scoring):
@@ -31,6 +40,9 @@ class ClusterPredictor:
         print(f"Original dataset size: {original_count} rows")
         print(f"Rows removed: {removed_count} rows ({removed_count / original_count:.2%} of data)")
         print(f"Remaining dataset size: {len(self.filtered_data)} rows")
+
+
+
 
 
 
