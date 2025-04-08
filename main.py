@@ -124,9 +124,15 @@ class FullWorkflow:
                 predictor = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH),
                                                    scoring=self.scoring)
                 predictor.train_all()
-                importance_df = predictor.get_feature_importance('Random Forest')
-                print(importance_df.head(10))  # top 10 most influential questions
+
+                # Plot accuracies
+                predictor.plot_model_accuracies()
+
+                # Optional: Save models
                 predictor.save_models()
+
+                # Optional: Stepwise analysis (logistic or random_forest)
+                predictor.stepwise_feature_analysis(top_n=10, model_type='logistic')
 
 
 
