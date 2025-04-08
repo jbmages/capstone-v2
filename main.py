@@ -5,6 +5,7 @@ from scripts.preprocess_data import DataPreprocessor
 from scripts.cluster import ClusteringModel
 from scripts.cluster_prediction import ClusterPredictor
 import scripts.utils as utils
+from scripts.region_prediction import PredictiveModel 
 
 # adding some random stuff to test cli pushing
 
@@ -25,7 +26,7 @@ class FullWorkflow:
     """
 
     def __init__(self, dataset_url: str, skip_download=False, skip_preprocessing=False,
-                 skip_clustering = False, skip_predictive = False):
+                 skip_clustering = False, skip_predictive = False,skip_region_predictive=False) :
         """
         Initializes the full workflow.
 
@@ -53,6 +54,9 @@ class FullWorkflow:
 
             if not skip_predictive:
                 self.cluster_prediction()
+
+            if not skip_region_predictive:
+                self.predictive_modeling()
 
 
         except Exception:
@@ -135,12 +139,23 @@ class FullWorkflow:
                 predictor.stepwise_feature_analysis(top_n=10, model_type='logistic')
 
 
-
-
         except Exception:
             print('you suck. cluster prediction failed bruh...')
             traceback.print_exc()
 
+    def predictive_modeling(self):
+            "Runs the predictive model"""
+            try:
+                if self.dataset is not None:
+                    print("Starting predictive model...")
+                    model = PredictiveModel(self.dataset)
+                    model.run()
+                    print("Predictive model completed.")
+                else:
+                    print("Predictive modeling didn't work: Dataset is not loaded.")
+            except Exception:
+                print("Error in predictive modeling:")
+                traceback.print_exc()
 
 # Example usage
 if __name__ == "__main__":
@@ -149,5 +164,6 @@ if __name__ == "__main__":
         skip_download=True,
         skip_preprocessing=True,
         skip_clustering=True,
-        skip_predictive=False
+        skip_predictive=False,
+        skip_region_predictive=False
     )
