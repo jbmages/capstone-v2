@@ -24,7 +24,7 @@ class FullWorkflow:
     Includes data downloading, preprocessing, and clustering.
     """
 
-    def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True,
+    def __init__(self, dataset_url: str, skip_download=False, skip_preprocessing=False,
                  skip_clustering = False, skip_predictive = False):
         """
         Initializes the full workflow.
@@ -35,6 +35,9 @@ class FullWorkflow:
         """
         self.dataset_url = dataset_url
         self.dataset = None
+
+        self.scoring = utils.retrieve_excel('scoring/scoring.xlsx')
+        print('scoring table correctly read in')
 
         try:
             if not skip_download or not os.path.exists(RAW_DATA_PATH):
@@ -49,7 +52,7 @@ class FullWorkflow:
                 self.clustering()
 
             if not skip_predictive:
-                self.cluster_predictiion()
+                self.cluster_prediction()
 
 
         except Exception:
@@ -72,9 +75,9 @@ class FullWorkflow:
     def data_preprocessing(self):
         """Handles data preprocessing pipeline if not already processed."""
         try:
-            if os.path.exists(CLEANED_DATA_PATH):
-                print("Cleaned data already exists, skipping preprocessing.")
-                return
+            #if os.path.exists(CLEANED_DATA_PATH):
+                #print("Cleaned data already exists, skipping preprocessing.")
+                #return
 
             print("Starting data preprocessing...")
             preprocessor = DataPreprocessor(dataset_path=RAW_DATA_PATH)
@@ -101,7 +104,7 @@ class FullWorkflow:
         try:
             if self.dataset is not None:
                 print("Starting clustering process...")
-                clustering_model = ClusteringModel(dataset=self.dataset)
+                clustering_model = ClusteringModel(dataset=self.dataset, scoring=self.scoring)
                 clustering_model.assign_clusters()
                 clustering_model.assign_question()
                 clustering_model.csv_to_json()
@@ -117,7 +120,8 @@ class FullWorkflow:
         """ Runs cluster prediction algorithm """
         try:
             if os.path.exists(CLUSTERED_DATA_PATH):
-                cluster_p_model = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH))
+                cluster_p_model = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH),
+                                                   scoring=self.scoring)
 
         except Exception:
             print('you suck. cluster prediction failed bruh...')
@@ -129,7 +133,7 @@ if __name__ == "__main__":
     workflow = FullWorkflow(
         dataset_url=GOOGLE_DRIVE_URL,
         skip_download=True,
-        skip_preprocessing=True,
-        skip_clustering=False
-
+        skip_preprocessing=False,
+        skip_clustering=False,
+        skip_predictive=False
     )

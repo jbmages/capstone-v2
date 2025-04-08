@@ -12,14 +12,14 @@ import time
 
 class ClusteringModel:
 
-    def __init__(self, dataset: pd.DataFrame):
+    def __init__(self, dataset: pd.DataFrame, scoring):
         """Initialize clustering model object"""
         print('initiating modeling infrastructure')
         self.data = dataset
 
         # Retrieve scoring table first
-        self.scoring = utils.retrieve_excel('scoring/scoring.xlsx')
-        print('scoring table correctly read in')
+        self.scoring = scoring
+
         # Prepare data segments
         self.survey_data, self.time_data, self.score_data = self.prep_data()
 

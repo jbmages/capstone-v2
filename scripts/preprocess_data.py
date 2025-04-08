@@ -56,6 +56,11 @@ class DataPreprocessor:
         normalize_time = time.time() - start_time
         print(f"Data normalized in {self.format_time(normalize_time)}.")
 
+        # Filter the data where 'ipc' column is equal to 1
+        self.data = self.data[self.data['IPC'] == 1]
+        print('NUMBER OF ROWS:', len(self.data))
+
+
     def trait_scores(self):
         """Calculate cumulative trait scores for survey entries"""
         print("Calculating trait scores...")
