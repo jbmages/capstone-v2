@@ -180,7 +180,7 @@ class FullWorkflow:
 
                 CWF = ClusteringWorkflow(self.dataset, self.scoring,
                                          cluster_data=clustering_data)
-                #CWF.grid_search(model_space=model_space)
+                CWF.grid_search(model_space=model_space)
 
         except Exception:
             print("Error in clustering process:")

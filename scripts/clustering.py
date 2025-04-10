@@ -8,6 +8,7 @@ including model training and evaluation, and hyperparameter tuning.
 from sklearn.preprocessing import StandardScaler
 import time
 import itertools
+from tqdm import tqdm
 
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, silhouette_score
@@ -18,15 +19,20 @@ class Model:
         return
 
     def evaluate(self):
-
+        # Ensure that `self.labels_` is available before evaluation
         labels = self.labels_
+        if labels is None:
+            raise ValueError("No labels found. Please fit the model first.")
+
         if len(set(labels)) > 1:
+            # Calculate evaluation metrics only if we have more than one cluster
             self.scores = {
                 'calinski_harabasz': calinski_harabasz_score(self.data, labels),
                 'davies_bouldin': davies_bouldin_score(self.data, labels),
                 'silhouette': silhouette_score(self.data, labels) if len(set(labels)) < len(self.data) else -1
             }
         else:
+            # If we have only one cluster, assign worst possible evaluation scores
             self.scores = {
                 'calinski_harabasz': -1,
                 'davies_bouldin': float('inf'),
@@ -104,22 +110,35 @@ class ClusteringWorkflow:
         start_time = time.time()
         results = []
 
+        # Iterate through the model space using tqdm for progress tracking
         for model_name, config in model_space.items():
 
             keys, values = zip(*config['params'].items())
 
-            for param_combo in itertools.product(*values):
+            # Wrap the grid search loop with tqdm for a progress bar
+            for param_combo in tqdm(itertools.product(*values), desc=f"Evaluating {model_name}", unit="model",
+                                    ncols=100):
 
                 param_dict = dict(zip(keys, param_combo))
 
+                # Instantiate the model class based on the string in the model space
                 model_class = self.MODEL_CLASS_MAP.get(config['class'])
                 if model_class is None:
                     raise ValueError(f"Unknown model class: {config['class']}")
+
                 model = model_class(self.data, param_dict)
 
+                # Fit and evaluate the model
                 model.fit()
                 model.evaluate()
 
+                # Print evaluation metrics for this model configuration
+                print(f"Model: {model_name}, Params: {param_dict}")
+                print(f"Scores - Calinski Harabasz: {model.scores['calinski_harabasz']}, "
+                      f"Davies Bouldin: {model.scores['davies_bouldin']}, "
+                      f"Silhouette: {model.scores['silhouette']}")
+
+                # Store the results
                 result = {
                     'model': model_name,
                     'params': param_dict,
