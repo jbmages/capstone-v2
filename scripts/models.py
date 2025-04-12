@@ -95,7 +95,7 @@ class Hierarchical(Model):
     def fit(self):
         model = AgglomerativeClustering(
             n_clusters=self.params.get('n_clusters', 5),
-            affinity=self.params.get('affinity', 'euclidean'),
+            metric=self.params.get('affinity', 'euclidean'),
             linkage=self.params.get('linkage', 'ward')
         )
         self.labels_ = model.fit_predict(self.data)

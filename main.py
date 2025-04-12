@@ -6,6 +6,8 @@ from scripts.cluster import ClusteringModel
 from scripts.cluster_prediction import ClusterPredictor
 import scripts.utils as utils
 from scripts.region_prediction import PredictiveModel
+import pandas as pd
+import time
 
 # v2 imports
 from scripts.clustering import ClusteringWorkflow
@@ -137,50 +139,95 @@ class FullWorkflow:
             traceback.print_exc()
 
     def clustering_v2(self):
-        """ Implements updated clustering workflow """
+        """ Comprehensive clustering benchmark """
 
         try:
-            print('waddup big dawg')
+            print("[🚀] Starting full clustering grid search...")
 
-            # Define model space (just testing KMeans)
+            # Combinations of inputs to try
+            cluster_data_variants = [
+                (['scores'], False),
+                (['survey_answers'], False),
+                (['scores'], True),
+                (['survey_answers'], True),
+                (['scores', 'survey_answers'], False),
+                (['scores', 'survey_answers'], True),
+            ]
+
+            # Master model space
             model_space = {
-                'KMeans_Test': {
+                'KMeans': {
                     'class': 'KMeans',
                     'params': {
-                        'n_clusters': [5],
+                        'n_clusters': [3, 5, 7, 9],
                         'batch_size': [64],
                         'max_iter': [100]
+                    }
+                },
+                'GMM': {
+                    'class': 'GMM',
+                    'params': {
+                        'n_components': [3, 5, 7],
+                        'covariance_type': ['full', 'tied'],
+                        'max_iter': [100]
+                    }
+                },
+                'DBScan': {
+                    'class': 'DBScan',
+                    'params': {
+                        'eps': [0.3, 0.5, 0.7],
+                        'min_samples': [5, 10]
+                    }
+                },
+                'Hierarchical': {
+                    'class': 'Hierarchical',
+                    'params': {
+                        'n_clusters': [3, 5, 7],
+                        'affinity': ['euclidean'],
+                        'linkage': ['ward']
                     }
                 }
             }
 
-            # Run WITHOUT Factor Analysis (on scores only)
-            workflow_raw = ClusteringWorkflow(
-                data=self.dataset,
-                scoring_table=self.scoring,
-                cluster_data=['scores'],
-                model_space=model_space,
-                apply_factor_analysis=False,
-                save_results=True
-            )
-            workflow_raw.grid_search()
+            all_results = []
 
-            # Run WITH Factor Analysis (on survey responses)
-            workflow_fa = ClusteringWorkflow(
-                data=self.dataset,
-                scoring_table=self.scoring,
-                cluster_data=['survey_answers'],
-                model_space=model_space,
-                apply_factor_analysis=True,
-                n_factors=5,
-                save_results=True
-            )
-            workflow_fa.grid_search()
+            for cluster_data, fa_flag in cluster_data_variants:
+                for model_key in model_space.keys():
+                    subspace = {model_key: model_space[model_key]}
 
-        except Exception:
-            print("Error in clustering process:")
+                    print(f"\n[⚙️ CONFIG] Data: {cluster_data} | FA: {fa_flag} | Model: {model_key}")
+
+                    workflow = ClusteringWorkflow(
+                        data=self.dataset,
+                        scoring_table=self.scoring,
+                        cluster_data=cluster_data,
+                        model_space=subspace,
+                        apply_factor_analysis=fa_flag,
+                        n_factors=5,
+                        max_time=120,
+                        save_results=False  # We'll save one final combined CSV instead
+                    )
+
+                    results = workflow.grid_search()
+                    all_results.extend(results)
+
+            # Save full results
+            df = pd.DataFrame(all_results)
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            out_path = f"model_eval/gridsearch_all_models_{timestamp}.csv"
+            os.makedirs("model_eval", exist_ok=True)
+            df.to_csv(out_path, index=False)
+
+            # Show top results
+            print("\n[🏁 DONE] Top Models by Silhouette Score:")
+            top_df = df.sort_values(by='silhouette', ascending=False).head(10)
+            print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz', 'density_gain']])
+            print(f"\n[SAVED] Full results to: {out_path}")
+
+        except Exception as e:
+            import traceback
+            print("[ERROR] Exception occurred during clustering:")
             traceback.print_exc()
-
 
     #########################################################
     #########################################################
