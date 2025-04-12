@@ -4,68 +4,33 @@ import itertools
 import pandas as pd
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import MiniBatchKMeans
-from sklearn.mixture import GaussianMixture
-from sklearn.cluster import DBSCAN
-from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, silhouette_score
+from sklearn.decomposition import FactorAnalysis
 
-
-class Model:
-    def __init__(self):
-        self.labels_ = None
-        self.scores = {}
-
-    def evaluate(self):
-        if self.labels_ is None:
-            raise ValueError("No labels found. Fit the model first.")
-
-        unique_labels = set(self.labels_)
-        if len(unique_labels) > 1:
-            self.scores = {
-                'calinski_harabasz': calinski_harabasz_score(self.data, self.labels_),
-                'davies_bouldin': davies_bouldin_score(self.data, self.labels_),
-                'silhouette': silhouette_score(self.data, self.labels_)
-            }
-        else:
-            self.scores = {
-                'calinski_harabasz': -1,
-                'davies_bouldin': float('inf'),
-                'silhouette': -1
-            }
-
-
-class KMeans(Model):
-    def __init__(self, data, params):
-        super().__init__()
-        self.data = data
-        self.params = params
-
-    def fit(self):
-        model = MiniBatchKMeans(
-            n_clusters=self.params.get('n_clusters', 5),
-            batch_size=self.params.get('batch_size', 100),
-            max_iter=self.params.get('max_iter', 100),
-            random_state=42
-        )
-        model.fit(self.data)
-        self.labels_ = model.labels_
-        self.data = self.data  # Needed for evaluation
+# Import all model classes from Models.py
+from models import KMeans, GMM, DBScan, Hierarchical
 
 
 class ClusteringWorkflow:
     def __init__(self, data, scoring_table, cluster_data, model_space,
-                 max_time=120, data_subset=0.4, save_results=True):
+                 max_time=120, data_subset=0.4, save_results=True,
+                 apply_factor_analysis=False, n_factors=5):
         self.raw_data = data
         self.scoring = scoring_table
         self.model_space = model_space
         self.max_time = max_time
         self.save_results = save_results
+        self.apply_factor_analysis = apply_factor_analysis
+        self.n_factors = n_factors
 
+        # Model class map
         self.MODEL_CLASS_MAP = {
             'KMeans': KMeans,
-            # Add GMM and DBSCAN here as needed
+            'GMM': GMM,
+            'DBScan': DBScan,
+            'Hierarchical': Hierarchical
         }
 
+        # Prepares self.data for clustering
         self.prep_data(cluster_data, data_subset)
 
     def prep_data(self, cluster_data, subset):
@@ -80,12 +45,17 @@ class ClusteringWorkflow:
         if 'time_cols' in cluster_data:
             cols += [col + '_E' for col in self.scoring['id'].tolist()]
 
-        # Sanity check for actual existence
         cols = [col for col in cols if col in self.raw_data.columns]
-        self.data = self.raw_data[cols].sample(frac=subset, random_state=42)
+        data = self.raw_data[cols].copy()
+        data = data.sample(frac=subset, random_state=42)
+
+        if self.apply_factor_analysis:
+            print(f"[INFO] Applying Factor Analysis with {self.n_factors} factors...")
+            fa = FactorAnalysis(n_components=self.n_factors, random_state=42)
+            data = fa.fit_transform(data)
 
         scaler = StandardScaler()
-        self.data = scaler.fit_transform(self.data)
+        self.data = scaler.fit_transform(data)
 
     def grid_search(self):
         results = []
@@ -112,10 +82,10 @@ class ClusteringWorkflow:
                 }
                 results.append(result)
 
-                print(f"Evaluated {model_name} with {param_dict} → Scores: {model.scores}")
+                print(f"[RESULT] {model_name} | Params: {param_dict} | Scores: {model.scores}")
 
                 if time.time() - start_time > self.max_time:
-                    print("Max time exceeded. Stopping early.")
+                    print("[WARNING] Max time exceeded. Stopping early.")
                     break
 
         if self.save_results:
@@ -123,6 +93,6 @@ class ClusteringWorkflow:
             df = pd.DataFrame(results)
             timestamp = time.strftime("%Y%m%d-%H%M%S")
             df.to_csv(f"model_eval/clustering_results_{timestamp}.csv", index=False)
-            print(f"Results saved to model_eval/clustering_results_{timestamp}.csv")
+            print(f"[SAVED] Results written to model_eval/clustering_results_{timestamp}.csv")
 
         return results

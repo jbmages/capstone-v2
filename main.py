@@ -139,27 +139,52 @@ class FullWorkflow:
     def clustering_v2(self):
         """ Implements updated clustering workflow """
 
-        model_space = {
-            'KMeans_v1': {
-                'class': 'KMeans',
-                'params': {
-                    'n_clusters': [3, 5, 7],
-                    'batch_size': [64],
-                    'max_iter': [100]
-                }
-            }
-        }
         try:
             print('waddup big dawg')
-            #workflow = ClusteringWorkflow(data=self.data, scoring_table=self.scoring, cluster_data=['scores', 'survey_answers'],model_space=model_space)
 
-            #results = workflow.grid_search()
-            #print(results)
+            # Define model space (just testing KMeans)
+            model_space = {
+                'KMeans_Test': {
+                    'class': 'KMeans',
+                    'params': {
+                        'n_clusters': [5],
+                        'batch_size': [64],
+                        'max_iter': [100]
+                    }
+                }
+            }
+
+            # Run WITHOUT Factor Analysis (on scores only)
+            workflow_raw = ClusteringWorkflow(
+                data=self.dataset,
+                scoring_table=self.scoring,
+                cluster_data=['scores'],
+                model_space=model_space,
+                apply_factor_analysis=False,
+                save_results=True
+            )
+            workflow_raw.grid_search()
+
+            # Run WITH Factor Analysis (on survey responses)
+            workflow_fa = ClusteringWorkflow(
+                data=self.dataset,
+                scoring_table=self.scoring,
+                cluster_data=['survey_answers'],
+                model_space=model_space,
+                apply_factor_analysis=True,
+                n_factors=5,
+                save_results=True
+            )
+            workflow_fa.grid_search()
 
         except Exception:
             print("Error in clustering process:")
             traceback.print_exc()
 
+
+    #########################################################
+    #########################################################
+    #########################################################
     def cluster_prediction(self):
         """ Runs cluster prediction algorithm """
         try:
@@ -206,6 +231,11 @@ class FullWorkflow:
         except Exception:
             print("Error in predictive modeling:")
             traceback.print_exc()
+
+
+    #########################################################
+    #########################################################
+    #########################################################
 
 
 if __name__ == "__main__":
