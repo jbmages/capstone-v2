@@ -1,87 +1,74 @@
-"""
-
-Clustering workflow script.
-This script manages the clustering workflow of our project,
-including model training and evaluation, and hyperparameter tuning.
-
-"""
-from sklearn.preprocessing import StandardScaler
+import os
 import time
 import itertools
+import pandas as pd
 from tqdm import tqdm
-
+from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import MiniBatchKMeans
+from sklearn.mixture import GaussianMixture
+from sklearn.cluster import DBSCAN
 from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, silhouette_score
 
 
 class Model:
     def __init__(self):
-        return
+        self.labels_ = None
+        self.scores = {}
 
     def evaluate(self):
-        # Ensure that `self.labels_` is available before evaluation
-        labels = self.labels_
-        if labels is None:
-            raise ValueError("No labels found. Please fit the model first.")
+        if self.labels_ is None:
+            raise ValueError("No labels found. Fit the model first.")
 
-        if len(set(labels)) > 1:
-            # Calculate evaluation metrics only if we have more than one cluster
+        unique_labels = set(self.labels_)
+        if len(unique_labels) > 1:
             self.scores = {
-                'calinski_harabasz': calinski_harabasz_score(self.data, labels),
-                'davies_bouldin': davies_bouldin_score(self.data, labels),
-                'silhouette': silhouette_score(self.data, labels) if len(set(labels)) < len(self.data) else -1
+                'calinski_harabasz': calinski_harabasz_score(self.data, self.labels_),
+                'davies_bouldin': davies_bouldin_score(self.data, self.labels_),
+                'silhouette': silhouette_score(self.data, self.labels_)
             }
         else:
-            # If we have only one cluster, assign worst possible evaluation scores
             self.scores = {
                 'calinski_harabasz': -1,
                 'davies_bouldin': float('inf'),
                 'silhouette': -1
             }
 
-    def push_to_kaggle(self):
-        # push model to KaggleHub for deployment
-        # will develop later
-        return
-
 
 class KMeans(Model):
-
     def __init__(self, data, params):
         super().__init__()
         self.data = data
         self.params = params
-        self.model = None
-        self.labels_ = None
-        self.scores = {}
 
     def fit(self):
-        self.model = MiniBatchKMeans(
+        model = MiniBatchKMeans(
             n_clusters=self.params.get('n_clusters', 5),
-            random_state=42,
             batch_size=self.params.get('batch_size', 100),
-            max_iter=self.params.get('max_iter', 100)
+            max_iter=self.params.get('max_iter', 100),
+            random_state=42
         )
-        self.model.fit(self.data)
-        self.labels_ = self.model.labels_
+        model.fit(self.data)
+        self.labels_ = model.labels_
+        self.data = self.data  # Needed for evaluation
 
 
 class ClusteringWorkflow:
-
-    def __init__(self, data, scoring_table, cluster_data, max_time = 120, data_subset = 0.4,):
-        self.data = data
+    def __init__(self, data, scoring_table, cluster_data, model_space,
+                 max_time=120, data_subset=0.4, save_results=True):
+        self.raw_data = data
         self.scoring = scoring_table
+        self.model_space = model_space
         self.max_time = max_time
+        self.save_results = save_results
 
         self.MODEL_CLASS_MAP = {
-            'KMeans': KMeans
+            'KMeans': KMeans,
+            # Add GMM and DBSCAN here as needed
         }
+
         self.prep_data(cluster_data, data_subset)
-        return
 
     def prep_data(self, cluster_data, subset):
-        # Prep data for clustering
-
         cols = []
 
         if 'scores' in cluster_data:
@@ -93,62 +80,49 @@ class ClusteringWorkflow:
         if 'time_cols' in cluster_data:
             cols += [col + '_E' for col in self.scoring['id'].tolist()]
 
-        # Filter to only include columns that actually exist in self.data
-        cols = [col for col in cols if col in self.data.columns]
-        self.data = self.data[cols].copy()
+        # Sanity check for actual existence
+        cols = [col for col in cols if col in self.raw_data.columns]
+        self.data = self.raw_data[cols].sample(frac=subset, random_state=42)
 
-        # SUBSET DATA
-        num_rows = int(subset * len(self.data))
-        self.data = self.data.sample(n=num_rows, random_state=42)  # Fix seed for reproducibility
-
-        # SCALE DATA
         scaler = StandardScaler()
         self.data = scaler.fit_transform(self.data)
-        print('hi pookie lol')
 
-    def grid_search(self, model_space):
-        start_time = time.time()
+    def grid_search(self):
         results = []
+        start_time = time.time()
 
-        # Iterate through the model space using tqdm for progress tracking
-        for model_name, config in model_space.items():
-
+        for model_name, config in self.model_space.items():
             keys, values = zip(*config['params'].items())
+            model_class = self.MODEL_CLASS_MAP.get(config['class'])
 
-            # Wrap the grid search loop with tqdm for a progress bar
-            for param_combo in tqdm(itertools.product(*values), desc=f"Evaluating {model_name}", unit="model",
-                                    ncols=100):
+            if not model_class:
+                raise ValueError(f"Unknown model class: {config['class']}")
 
+            for param_combo in tqdm(itertools.product(*values), desc=f"Evaluating {model_name}", ncols=100):
                 param_dict = dict(zip(keys, param_combo))
 
-                # Instantiate the model class based on the string in the model space
-                model_class = self.MODEL_CLASS_MAP.get(config['class'])
-                if model_class is None:
-                    raise ValueError(f"Unknown model class: {config['class']}")
-
                 model = model_class(self.data, param_dict)
-
-                # Fit and evaluate the model
                 model.fit()
                 model.evaluate()
 
-                # Print evaluation metrics for this model configuration
-                print(f"Model: {model_name}, Params: {param_dict}")
-                print(f"Scores - Calinski Harabasz: {model.scores['calinski_harabasz']}, "
-                      f"Davies Bouldin: {model.scores['davies_bouldin']}, "
-                      f"Silhouette: {model.scores['silhouette']}")
-
-                # Store the results
                 result = {
                     'model': model_name,
-                    'params': param_dict,
-                    'scores': model.scores
+                    **param_dict,
+                    **model.scores
                 }
                 results.append(result)
 
-                # Optional: stop if we exceed max time
+                print(f"Evaluated {model_name} with {param_dict} → Scores: {model.scores}")
+
                 if time.time() - start_time > self.max_time:
-                    print("Max time exceeded. Ending grid search early.")
+                    print("Max time exceeded. Stopping early.")
                     break
+
+        if self.save_results:
+            os.makedirs("model_eval", exist_ok=True)
+            df = pd.DataFrame(results)
+            timestamp = time.strftime("%Y%m%d-%H%M%S")
+            df.to_csv(f"model_eval/clustering_results_{timestamp}.csv", index=False)
+            print(f"Results saved to model_eval/clustering_results_{timestamp}.csv")
 
         return results

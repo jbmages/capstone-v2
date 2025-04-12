@@ -26,7 +26,7 @@ class FullWorkflow:
 
     def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True,
                  skip_clustering=False, skip_predictive=True, use_clustering_v2=True,
-                 use_prediction_v2=True, skip_region_predictive=False):
+                 use_prediction_v2=True, skip_region_predictive=True):
         """
         Initializes the full workflow.
 
@@ -139,48 +139,22 @@ class FullWorkflow:
     def clustering_v2(self):
         """ Implements updated clustering workflow """
 
-        clustering_data = ['scores', 'time']
-
         model_space = {
-            'kmeans': {
+            'KMeans_v1': {
                 'class': 'KMeans',
                 'params': {
-                    'n_clusters': [3, 4, 5, 6, 7]
+                    'n_clusters': [3, 5, 7],
+                    'batch_size': [64],
+                    'max_iter': [100]
                 }
             }
         }
-
-        """
-            'gmm': {
-                'class': GMMModel,
-                'params': {
-                    'n_components': [3, 4, 5, 6, 7],
-                    'covariance_type': ['full', 'tied']
-                }
-            },
-            'dbscan': {
-                'class': DBSCANModel,
-                'params': {
-                    'eps': [0.5, 1.0, 1.5],
-                    'min_samples': [5, 10]
-                }
-            },
-            'hierarchical': {
-                'class': HierarchicalModel,
-                'params': {
-                    'n_clusters': [3, 4, 5],
-                    'linkage': ['ward', 'complete']
-                }
-        """
-
         try:
-            if self.dataset is not None:
-                print("Starting model evaluation...")
-                print("model space:", model_space)
+            print('waddup big dawg')
+            #workflow = ClusteringWorkflow(data=self.data, scoring_table=self.scoring, cluster_data=['scores', 'survey_answers'],model_space=model_space)
 
-                CWF = ClusteringWorkflow(self.dataset, self.scoring,
-                                         cluster_data=clustering_data)
-                CWF.grid_search(model_space=model_space)
+            #results = workflow.grid_search()
+            #print(results)
 
         except Exception:
             print("Error in clustering process:")
@@ -239,9 +213,9 @@ if __name__ == "__main__":
     print('Initiating workflow..')
     workflow = FullWorkflow(
         dataset_url=GOOGLE_DRIVE_URL,
-        skip_download=True,
-        skip_preprocessing=True,
-        skip_clustering=False,
+        #skip_download=True,
+        #skip_preprocessing=True,
+        #skip_clustering=False,
         skip_predictive=True,
         use_clustering_v2=True,
         use_prediction_v2=True,
