@@ -221,7 +221,8 @@ class FullWorkflow:
             # Show top results
             print("\n[🏁 DONE] Top Models by Silhouette Score:")
             top_df = df.sort_values(by='silhouette', ascending=False).head(10)
-            print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz', 'density_gain']])
+            #print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz', 'density_gain']])
+            print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz']])
             print(f"\n[SAVED] Full results to: {out_path}")
 
         except Exception as e:
