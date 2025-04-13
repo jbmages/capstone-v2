@@ -183,7 +183,7 @@ class FullWorkflow:
                 print("Error in predictive modeling:")
                 traceback.print_exc()
 
-        def cluster_prediction_v2(self):
+    def cluster_prediction_v2(self):
             """ Runs cluster prediction algorithm """
             try:
                 if os.path.exists(CLUSTERED_DATA_PATH):
@@ -215,5 +215,4 @@ if __name__ == "__main__":
         use_clustering_v2=True,
         use_prediction_v2=True
         skip_region_predictive=False
-
     )
