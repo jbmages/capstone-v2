@@ -71,7 +71,8 @@ class ClusteringWorkflow:
 
             for param_combo in tqdm(itertools.product(*values), desc=f"Evaluating {model_name}", ncols=100):
                 param_dict = dict(zip(keys, param_combo))
-
+                print('doing one!!')
+                print(self.data.shape)
                 model = model_class(self.data, param_dict)
                 model.fit()
                 model.evaluate()
@@ -91,6 +92,9 @@ class ClusteringWorkflow:
                     **model.scores,
                     #**kde_result
                 }
+                if hasattr(model, 'labels_'):
+                    result['n_clusters_found'] = len(set(model.labels_)) - (1 if -1 in model.labels_ else 0)
+
                 # Append to list
                 results.append(result)
 

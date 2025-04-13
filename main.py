@@ -143,48 +143,39 @@ class FullWorkflow:
 
         try:
             print("[🚀] Starting full clustering grid search...")
-
-            # Combinations of inputs to try
+            # Targeted combinations based on prior findings
             cluster_data_variants = [
-                (['scores'], False),
-                (['survey_answers'], False),
                 (['scores'], True),
                 (['survey_answers'], True),
-                (['scores', 'survey_answers'], False),
-                (['scores', 'survey_answers'], True),
+                (['scores', 'survey_answers'], True),  # FA helps
             ]
 
-            # Master model space
+            # Expanded hyperparameter space
             model_space = {
                 'KMeans': {
                     'class': 'KMeans',
                     'params': {
-                        'n_clusters': [3, 5, 7, 9],
+                        'n_clusters': [3, 6, 9, 12],  # larger jumps
                         'batch_size': [64],
-                        'max_iter': [100]
+                        'max_iter': [100],
+                        #'n_factors': [5, 7, 10]  # NEW: explore FA depth
                     }
                 },
                 'GMM': {
                     'class': 'GMM',
                     'params': {
-                        'n_components': [3, 5, 7],
-                        'covariance_type': ['full', 'tied'],
-                        'max_iter': [100]
+                        'n_components': [3, 6, 9, 12],
+                        'covariance_type': ['tied'],
+                        'max_iter': [100],
+                        #'n_factors': [5, 7, 10]  # NEW
                     }
                 },
                 'DBScan': {
                     'class': 'DBScan',
                     'params': {
-                        'eps': [0.3, 0.5, 0.7],
-                        'min_samples': [5, 10]
-                    }
-                },
-                'Hierarchical': {
-                    'class': 'Hierarchical',
-                    'params': {
-                        'n_clusters': [3, 5, 7],
-                        'affinity': ['euclidean'],
-                        'linkage': ['ward']
+                        'eps': [0.6, 0.8, 1.0, 1.2],
+                        'min_samples': [8, 10, 12],
+                        #'n_factors': [5, 7, 10]  # NEW
                     }
                 }
             }
