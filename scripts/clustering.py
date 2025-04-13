@@ -16,7 +16,7 @@ from sklearn.manifold import TSNE
 
 class ClusteringWorkflow:
     def __init__(self, data, scoring_table, cluster_data, model_space,
-                 max_time=600, data_subset=0.05, save_results=True,
+                 max_time=600, data_subset=0.03, save_results=True,
                  apply_factor_analysis=False, n_factors=5):
         self.raw_data = data
         self.scoring = scoring_table

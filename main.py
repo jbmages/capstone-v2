@@ -158,7 +158,7 @@ class FullWorkflow:
                         'n_clusters': [3, 6, 9, 12],  # larger jumps
                         'batch_size': [64],
                         'max_iter': [100],
-                        #'n_factors': [5, 7, 10]  # NEW: explore FA depth
+                        'n_factors': [5, 7, 10]  # NEW: explore FA depth
                     }
                 },
                 'GMM': {
@@ -167,15 +167,15 @@ class FullWorkflow:
                         'n_components': [3, 6, 9, 12],
                         'covariance_type': ['tied'],
                         'max_iter': [100],
-                        #'n_factors': [5, 7, 10]  # NEW
+                        'n_factors': [5, 7, 10]  # NEW
                     }
                 },
                 'DBScan': {
                     'class': 'DBScan',
                     'params': {
-                        'eps': [0.6, 0.8, 1.0, 1.2],
-                        'min_samples': [8, 10, 12],
-                        #'n_factors': [5, 7, 10]  # NEW
+                        'eps': [0.8, 1.2, 1.6, 2.0],
+                        'min_samples': [8, 12, 16, 20],
+                        'n_factors': [5, 7, 10]  # NEW
                     }
                 }
             }
