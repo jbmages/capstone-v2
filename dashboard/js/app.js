@@ -1,4 +1,5 @@
-d3.json("dash-data/cluster_data.json").then(function(data) {
+d3.json("dash-data/cluster_data.json").then(function(loadedData) {
+    const data = loadedData;
     console.log("Data Loaded:", data);
     if (!data || data.length === 0) {
         console.error("Error: No data loaded.");
@@ -6,26 +7,19 @@ d3.json("dash-data/cluster_data.json").then(function(data) {
     }
 
     let numericCols = Object.keys(data[0]).slice(0, 50);
-    let clusterOptions = ['KMeans Cluster', 'GMM Cluster'];
-
-    // Create clustering method dropdown
-    let methodDropdown = d3.select("body")
-        .insert("div", "#data-table")
-        .attr("id", "dropdown-container")
-        .append("select")
-        .attr("id", "clusterDropdown");
+    const clusterOptions = ['KMeans_Cluster', 'GMM_Cluster'];
+    const methodDropdown = d3.select("#clusterDropdown");
 
     methodDropdown.selectAll("option")
         .data(clusterOptions)
         .enter()
         .append("option")
-        .text(d => d)
-        .attr("value", d => d);
+        .text(d => d.replace("_", " "))  
+        .attr("value", d => d);        
 
-    // Create column selection dropdown
-    let columnDropdown = d3.select("#dropdown-container")
-        .append("select")
-        .attr("id", "columnDropdown");
+    // select column selection dropdown
+    const columnDropdown = d3.select("#columnDropdown");
+
 
     columnDropdown.selectAll("option")
         .data(numericCols)
@@ -34,25 +28,20 @@ d3.json("dash-data/cluster_data.json").then(function(data) {
         .text(d => d)
         .attr("value", d => d);
 
-    // Create SVG
-    let svg = d3.select("body")
-        .insert("div", "#data-table")
-        .attr("id", "chart-container")
-        .append("svg")
-        .attr("width", 600)
-        .attr("height", 450);
+    let svg = d3.select("#chart")
+    .attr("width", 600)
+    .attr("height", 450);
 
-    // Legend container
-    let legend = d3.select("#chart-container")
-        .append("div")
-        .attr("id", "legend")
-        .style("margin-top", "10px");
+    let legend = d3.select("#legend");
+
 
     function updateChart(col, clusterMethod) {
-        let values = data.map(d => ({
+
+        const values = data.map(d => ({
             value: +d[col],
             cluster: d[clusterMethod]
-        })).filter(d => !isNaN(d.value));
+        })).filter(d => !isNaN(d.value) && d.cluster !== undefined);
+
 
         svg.selectAll("*").remove();
         legend.selectAll("*").remove();
@@ -148,12 +137,16 @@ d3.json("dash-data/cluster_data.json").then(function(data) {
     updateChart(numericCols[0], clusterOptions[0]);
 
     // On dropdown change
-    columnDropdown.on("change", function() {
-        updateChart(this.value, d3.select("#clusterDropdown").property("value"));
+    methodDropdown.on("change", function() {
+        const col = columnDropdown.property("value");
+        const cluster = this.value;
+        updateChart(col, cluster);
     });
 
-    methodDropdown.on("change", function() {
-        updateChart(d3.select("#columnDropdown").property("value"), this.value);
+    columnDropdown.on("change", function() {
+        const col = this.value;
+        const cluster = methodDropdown.property("value");
+        updateChart(col, cluster);
     });
 
 }).catch(function(error) {
