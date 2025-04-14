@@ -229,6 +229,8 @@ class FullWorkflow:
             print('you suck. cluster prediction failed bruh...')
             traceback.print_exc()
 
+
+
     def cluster_prediction_v2(self):
         """ Runs cluster prediction algorithm """
         try:
@@ -237,6 +239,7 @@ class FullWorkflow:
                 # set dataset subset amount and max time length
                 #
                 pass
+
 
         except Exception:
             traceback.print_exc()
@@ -271,6 +274,8 @@ if __name__ == "__main__":
         #skip_clustering=False,
         skip_predictive=True,
         use_clustering_v2=True,
+
+
         use_prediction_v2=True,
         skip_region_predictive=True
 
