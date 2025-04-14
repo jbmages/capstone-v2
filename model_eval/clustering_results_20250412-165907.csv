@@ -1,0 +1,2 @@
+model,n_clusters,batch_size,max_iter,calinski_harabasz,davies_bouldin,silhouette
+KMeans_Test,5,64,100,938.8382850764799,1.692435927887074,0.12194124474531254
