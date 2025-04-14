@@ -152,30 +152,14 @@ class FullWorkflow:
 
             # Expanded hyperparameter space
             model_space = {
-                'KMeans': {
-                    'class': 'KMeans',
-                    'params': {
-                        'n_clusters': [3, 6, 9, 12],  # larger jumps
-                        'batch_size': [64],
-                        'max_iter': [100],
-                        'n_factors': [5, 7, 10]  # NEW: explore FA depth
-                    }
-                },
-                'GMM': {
-                    'class': 'GMM',
-                    'params': {
-                        'n_components': [3, 6, 9, 12],
-                        'covariance_type': ['tied'],
-                        'max_iter': [100],
-                        'n_factors': [5, 7, 10]  # NEW
-                    }
-                },
+
+
                 'DBScan': {
                     'class': 'DBScan',
                     'params': {
-                        'eps': [0.8, 1.2, 1.6, 2.0],
+                        'eps': [1.0, 1.5, 2.0],
                         'min_samples': [8, 12, 16, 20],
-                        'n_factors': [5, 7, 10]  # NEW
+                        'n_factors': [5]  # NEW
                     }
                 }
             }
