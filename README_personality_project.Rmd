@@ -1,0 +1,295 @@
+
+---
+title: "Exploratory Data Analysis: Big Five Personality Traits"
+output: html_document
+---
+
+```{r setup1, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+
+# Personality Clustering, Modeling, and Analysis
+
+**Julian Benitez Mages & Anaelle Surprise**
+
+![](images/image-26380211.png)
+
+![](images/quiz_results.jpg)
+
+---
+
+## Project Overview
+
+This project investigates personality structure through unsupervised and supervised learning. Using over 1 million responses to the IPIP-NEO 50-item Big Five Personality survey, we explore whether distinct personality clusters emerge, and whether traits can predict geographic region.
+
+---
+
+## Setup Instructions
+
+1. Clone this repository and install required dependencies:
+
+```bash
+git clone <your-repo>
+cd <your-repo>
+pip install -r requirements.txt
+```
+
+2. Preprocess the dataset:
+
+```bash
+python preprocess_data.py
+```
+
+This script loads and cleans the IPIP dataset, computes Big Five scores, filters to one response per user, and outputs a clean CSV file for modeling.
+
+---
+
+## Background: The Big Five Traits
+
+The Big Five Factor Model describes personality in terms of five traits:
+- **Openness** (to experience)
+- **Conscientiousness**
+- **Extraversion**
+- **Agreeableness**
+- **Neuroticism**
+
+Our dataset contains responses to 50 items, with accompanying metadata like time spent, country, and screen size. These traits are computed as aggregate scores based on question groups.
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(tidyverse)
+library(ggplot2)
+library(ggthemes)
+library(GGally)
+library(reshape2)
+library(gridExtra)
+```
+
+## Background & Context
+
+The **Big Five Personality Traits** (also known as the **Five Factor Model**) is a framework for understanding personality based on five traits:
+- Openness
+- Conscientiousness
+- Extraversion
+- Agreeableness
+- Neuroticism
+
+The **IPIP** inventory measures these traits through a set of 50 questions, each rated from 1 to 5. This dataset includes over 1 million responses, collected globally between 2016–2018, with metadata such as country, screen size, and time spent per survey page.
+
+```{r load-data ,echo = FALSE}
+# Load the data
+library(readr)
+data_final <- read_csv("capstone-v2/data/cleaned_data_v2.csv")
+df <- data_final
+```
+
+## Trait Distributions
+
+```{r histograms ,echo = FALSE}
+# Visualize distributions of trait scores
+df_clean <- df
+ df_clean <- df_clean %>%
+  rename(
+    E_score = `E score`,
+    N_score = `N score`,
+    A_score = `A score`,
+    C_score = `C score`,
+    O_score = `O score`
+  )
+df_clean %>% 
+  select(E_score, N_score, A_score, C_score, O_score) %>%
+  pivot_longer(cols = everything(), names_to = "trait", values_to = "score") %>%
+  ggplot(aes(x = score, fill = trait)) +
+  geom_histogram(bins = 30, alpha = 0.7, position = "identity") +
+  facet_wrap(~ trait, scales = "free") +
+  theme_minimal() +
+  labs(title = "Distribution of Big Five Personality Trait Scores", x = "Score", y = "Count")
+```
+
+## Correlation Analysis
+
+```{r correlation ,echo = FALSE}
+# Heatmap of correlations between traits
+traits <- df_clean %>% select(E_score, N_score, A_score, C_score, O_score)
+cor_matrix <- round(cor(traits), 2)
+ggcorr(traits, label = TRUE) + ggtitle("Correlation Matrix of Big Five Traits")
+```
+
+## Geographic Distribution
+
+```{r geographic ,echo = FALSE}
+# Respondent count by country (assuming 'country' column exists)
+df_clean %>%
+  count(country) %>%
+  arrange(desc(n)) %>%
+  top_n(20, n) %>%
+  ggplot(aes(x = reorder(country, n), y = n)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  theme_minimal() +
+  labs(title = "Top 20 Respondent Countries", x = "Country", y = "Count")
+```
+
+## Dimensionality Reduction (PCA)
+
+```{r pca ,echo = FALSE}
+library(ggfortify)
+
+
+# PCA on trait scores
+trait_scores <- df_clean %>% select(E_score, N_score, A_score, C_score, O_score)
+pca_result <- prcomp(trait_scores, center = TRUE, scale. = TRUE)
+autoplot(pca_result, data = df_clean, loadings = TRUE) +
+  theme_minimal() +
+  labs(title = "PCA of Personality Trait Scores")
+```
+
+```{r ,echo = FALSE}
+region_data <- read_csv("country-data.csv")
+region_data <- region_data %>%
+  rename(
+    alpha_2 = `alpha-2`,
+    region = region,
+    sub_region = `sub-region`,
+    int_region = `intermediate-region`
+  )
+# Assuming df_clean has a 'country' column (with ISO alpha-2 codes like "US", "GB", etc.)
+df_enriched <- df_clean %>%
+  left_join(region_data, by = c("country" = "alpha_2"))
+
+```
+
+
+```{r ,echo = FALSE}
+df_enriched %>%
+  group_by(sub_region) %>%
+  summarise(
+    avg_E = mean(E_score, na.rm = TRUE),
+    avg_N = mean(N_score, na.rm = TRUE),
+    avg_A = mean(A_score, na.rm = TRUE),
+    avg_C = mean(C_score, na.rm = TRUE),
+    avg_O = mean(O_score, na.rm = TRUE),
+    n = n()
+  ) %>%
+  arrange(desc(n))
+
+```
+
+```{r ,echo = FALSE}
+library(rnaturalearth)
+library(rnaturalearthdata)
+library(sf)
+library(dplyr)
+library(ggplot2)
+
+# Load world map with ISO alpha-2 codes
+world <- ne_countries(scale = "medium", returnclass = "sf")
+set.seed(42)  # for reproducibility
+df_subset <- df_enriched %>% sample_n(5000)
+# Join to world map
+world_data <- left_join(world, df_subset, by = c("iso_a2" = "country"))
+
+# Plot Extraversion by country
+ggplot(world_data) +
+  geom_sf(aes(fill = E_score), color = "black", size = 0.1) +
+  scale_fill_viridis_c(option = "C", na.value = "lightgrey") +
+  theme_minimal() +
+  labs(title = "Global Distribution of Extraversion", fill = "E_score")
+
+
+```
+
+```{r ,echo = FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+# Group by region and calculate average trait scores
+region_avg <- df_enriched %>%
+  group_by(sub_region) %>%
+  summarise(
+    E_score = mean(E_score, na.rm = TRUE),
+    A_score = mean(A_score, na.rm = TRUE),
+    C_score = mean(C_score, na.rm = TRUE),
+    N_score = mean(N_score, na.rm = TRUE),
+    O_score = mean(O_score, na.rm = TRUE)
+  )
+
+# Convert to long format
+region_long <- region_avg %>%
+  pivot_longer(cols = -sub_region, names_to = "Trait", values_to = "Score")
+
+# For each trait, select top 5 regions
+top_5_regions <- region_long %>%
+  group_by(Trait) %>%
+  arrange(desc(Score)) %>%
+  slice_head(n = 5) %>%
+  ungroup()
+
+# Plot
+ggplot(top_5_regions, aes(x = reorder(sub_region, Score), y = Score, fill = sub_region)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~Trait, scales = "free") +
+  coord_flip() +
+  labs(
+    title = "Top 5 Regions by Average Big Five Trait Scores",
+    x = "sub_region",
+    y = "Average Score"
+  ) +
+  theme_minimal()
+
+
+```
+
+---
+
+## Clustering
+
+Using `clusering_v2.py`, we applied KMeans, GMM, and DBSCAN on scaled survey data and calculated silhouette and Davies-Bouldin scores. Best models were saved, and labeled cluster data exported to JSON for D3 dashboard integration.
+
+---
+
+## Predictive Modeling: U.S. Region
+
+In `PredictiveModel.py`, a Random Forest predicts U.S. region (Northeast, Midwest, South, West) based on personality traits. Coordinates were mapped to regions, data undersampled for balance, and performance evaluated using accuracy and classification reports.
+
+---
+
+## Cluster Classification
+
+`cluster_prediction_v2.py` trains classifiers (Random Forest, Logistic Regression, SVM, MLP) to predict a user’s cluster based on their raw answers. We also evaluate feature importance and visualize model accuracy.
+
+---
+
+## D3.js Interactive Dashboard
+
+The dashboard allows users to:
+- Select a personality trait
+- Choose a clustering method (KMeans or GMM)
+- View a stacked histogram of trait distributions across clusters
+
+It is built with D3 and styled via custom CSS. Load it by running:
+
+```bash
+cd dashboard
+python -m http.server
+```
+
+---
+
+## Future Work
+
+- 
+---
+
+## References
+
+- IPIP Dataset: https://openpsychometrics.org
+- Goldberg, L. R. (1992). The development of markers for the Big-Five factor structure.
