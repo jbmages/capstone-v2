@@ -63,12 +63,13 @@ const questions = {
 };
 
 const responses = [
-    { label: 'Strongly Agree', value: 5 },
-    { label: 'Agree', value: 3 },
-    { label: 'Neutral', value: 0 },
-    { label: 'Disagree', value: -3 },
-    { label: 'Strongly Disagree', value: -5 }
+  { label: 'Strongly Agree', value: 5 },
+  { label: 'Agree', value: 4 },
+  { label: 'Neutral', value: 3 },
+  { label: 'Disagree', value: 2 },
+  { label: 'Strongly Disagree', value: 1 }
 ];
+
 
 // ========== LOGIC ==========
 const scores = { OPN: 0, CSN: 0, EXT: 0, AGR: 0, EST: 0 };
@@ -129,7 +130,7 @@ function buildQuiz() {
         quiz.append(html);
     });
 
-    // Attach event listeners after DOM elements exist
+    // event listeners after DOM elements exist
     $('.value-btn').click(handleAnswer);
 }
 
@@ -145,16 +146,30 @@ function handleAnswer() {
     const old = group.filter('.active');
 
     if (!old.length) answered++;
-    else scores[trait] -= reverse ? -parseInt(old.data('value')) : parseInt(old.data('value'));
+    else {
+        const oldVal = parseInt(old.data('value'));
+        const wasReversed = old.data('reverse') === true || old.data('reverse') === "true";
+        scores[trait] -= wasReversed ? reverseScore(oldVal) : oldVal;
+    }
 
     group.removeClass('active');
     btn.addClass('active');
 
-    scores[trait] += reverse ? -value : value;
+    const finalVal = reverse ? reverseScore(value) : value;
+    scores[trait] += finalVal;
+
+
     console.log("Scores:", scores);
     updateProgressBar();
     $('#submit-btn').prop('disabled', answered < total);
+    console.log(`Answered ${answered} / ${total}`);
+
 }
+
+function reverseScore(value) {
+  return 6 - value;
+}
+
 
 function updateProgressBar() {
     const percent = (answered / total) * 100;
