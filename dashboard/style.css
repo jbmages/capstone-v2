@@ -150,3 +150,20 @@ rect.histogram-bar:hover {
 .styled-table tr:hover {
     background-color: #f1f1f1;
 }
+
+.value-btn {
+    border: 1px solid #ccc;
+    background-color: white;
+    color: #333;
+    padding: 8px 12px;
+    margin: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.value-btn.active {
+    background-color: #89d298; /* soft green */
+    color: white;
+    font-weight: bold;
+    border-color: #89d298;
+}
