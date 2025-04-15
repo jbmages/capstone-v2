@@ -2,6 +2,8 @@ import os
 import traceback
 from scripts.download_data import DataDownloader
 from scripts.preprocess_data import DataPreprocessor
+from scripts.clustering import ClusteringWorkflow
+from scripts.cluster_analytics_pipeline import ClusterAnalyticsPipeline
 
 from scripts.cluster_prediction import ClusterPredictor
 import scripts.utils as utils
@@ -10,7 +12,7 @@ import pandas as pd
 import time
 
 
-from scripts.clustering import ClusteringWorkflow
+
 from scripts.cluster_analytics_pipeline import ClusterAnalyticsPipeline
 
 GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0Gga4Rvo5iDrHuHBFGgrP'
@@ -28,8 +30,9 @@ class FullWorkflow:
     """
 
     def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True,
-                 skip_clustering=False, skip_predictive=True, use_clustering_v2=True,
-                 use_prediction_v2=True, skip_region_predictive=True):
+                 skip_clustering=True, skip_predictive=True,
+                 use_prediction_v2=True, skip_region_predictive=True,
+                 skip_cluster_analytics=False):
         """
         Initializes the full workflow.
 
@@ -60,7 +63,11 @@ class FullWorkflow:
 
             ### CLUSTERING
             if not skip_clustering:
-                    self.clustering()
+                self.clustering()
+
+            if not skip_cluster_analytics:
+                self.clustering_analytics()
+
 
             ### CLUSTER PREDICTION
             if not skip_predictive:
@@ -183,6 +190,21 @@ class FullWorkflow:
             print("[ERROR] Exception occurred during clustering:")
             traceback.print_exc()
 
+    def clustering_analytics(self):
+        try:
+            if os.path.exists(CLUSTERED_DATA_PATH_V2):
+                print('initiating clustering analytics pipeline for dashboarding')
+                d = self.dataset = utils.retrieve_data(CLUSTERED_DATA_PATH_V2)
+                p = ClusterAnalyticsPipeline(data=d, scoring=self.scoring)
+            else:
+                print('error: path', CLUSTERED_DATA_PATH_V2, 'not found')
+                return
+        except Exception as e:
+            import traceback
+            print("[ERROR] Exception occurred in clustering analytics pipeline:")
+            traceback.print_exc()
+
+
     #########################################################
     #########################################################
     #########################################################
@@ -254,8 +276,8 @@ if __name__ == "__main__":
         skip_preprocessing=True,
         skip_clustering=True,
         skip_predictive=True,
-        use_clustering_v2=False,
+        skip_cluster_analytics=False,
         use_prediction_v2=False,
-        skip_region_predictive=False
+        skip_region_predictive=True
 
     )
