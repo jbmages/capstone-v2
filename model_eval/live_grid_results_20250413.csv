@@ -1,0 +1,5 @@
+model,data_type,factor_analysis,eps,min_samples,n_factors,calinski_harabasz,davies_bouldin,silhouette,n_clusters_found
+DBScan,scores+survey_answers,True,1.0,8,5,1058.1607725958247,1.9417056940646353,0.42480111331445636,3
+DBScan,scores+survey_answers,True,1.0,12,5,1071.6949899432796,1.8666094786104777,0.4188556308654472,3
+DBScan,scores+survey_answers,True,1.0,16,5,1080.113867263903,1.8739934208005784,0.4091322280715617,3
+DBScan,scores+survey_answers,True,1.0,20,5,1018.8677111927606,2.0303495320353626,0.4160390791502548,3
