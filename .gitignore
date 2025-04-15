@@ -9,3 +9,5 @@ models/
 scoring/scoring_inst.html
 scoring/scoring_rubric.rtf
 scoring/scoring_webpage.html
+model_eval/
+scripts/cluster_eval/

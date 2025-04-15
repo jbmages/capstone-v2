@@ -18,7 +18,7 @@ GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0
 RAW_DATA_PATH = 'data/data-final.csv'
 CLEANED_DATA_PATH = 'data/cleaned_data_v2.csv'
 CLUSTERED_DATA_PATH = 'data/data_with_clusters.csv'
-
+CLUSTERED_DATA_PATH_V2 = ''
 
 class FullWorkflow:
     """
