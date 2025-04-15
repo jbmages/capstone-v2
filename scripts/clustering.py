@@ -143,20 +143,5 @@ class ClusteringWorkflow:
             'density_gain': density_gain
         }
 
-    def plot_clusters(self, labels, title_suffix=""):
-        # PCA for 2D projection
-        pca = PCA(n_components=2)
-        proj = pca.fit_transform(self.data)
 
-        plt.figure(figsize=(6, 5))
-        plt.scatter(proj[:, 0], proj[:, 1], c=labels, cmap='tab10', alpha=0.6, s=10)
-        plt.title(f"Cluster Visualization (PCA) {title_suffix}")
-        plt.xlabel("PC1")
-        plt.ylabel("PC2")
-        plt.tight_layout()
-        timestamp = time.strftime("%Y%m%d-%H%M%S")
-        outdir = "model_eval/figs"
-        os.makedirs(outdir, exist_ok=True)
-        plt.savefig(f"{outdir}/pca_{title_suffix}_{timestamp}.png")
-        plt.close()
 

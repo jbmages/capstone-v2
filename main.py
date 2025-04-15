@@ -30,9 +30,9 @@ class FullWorkflow:
     """
 
     def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True,
-                 skip_clustering=True, skip_predictive=True,
-                 use_prediction_v2=True, skip_region_predictive=True,
-                 skip_cluster_analytics=False):
+                 skip_clustering=True, skip_predictive=False,
+                 use_prediction_v2=False, skip_region_predictive=True,
+                 skip_cluster_analytics=True):
         """
         Initializes the full workflow.
 
@@ -204,44 +204,20 @@ class FullWorkflow:
             print("[ERROR] Exception occurred in clustering analytics pipeline:")
             traceback.print_exc()
 
-
-    #########################################################
-    #########################################################
-    #########################################################
     def cluster_prediction(self):
         """ Runs cluster prediction algorithm """
         try:
             if os.path.exists(CLUSTERED_DATA_PATH):
 
-                predictor = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH),
+                predictor = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH_V2),
                                                    scoring=self.scoring)
                 predictor.train_all()
 
                 # Plot accuracies
                 predictor.plot_model_accuracies()
 
-                # Optional: Save models
-                predictor.save_models()
-
-                # Optional: Stepwise analysis (logistic or random_forest)
-                predictor.stepwise_feature_analysis(top_n=10, model_type='logistic')
         except Exception:
-            print('you suck. cluster prediction failed bruh...')
-            traceback.print_exc()
-
-
-
-    def cluster_prediction_v2(self):
-        """ Runs cluster prediction algorithm """
-        try:
-            if os.path.exists(CLUSTERED_DATA_PATH):
-                # run clustering workflow
-                # set dataset subset amount and max time length
-                #
-                pass
-
-
-        except Exception:
+            print('failed')
             traceback.print_exc()
 
     def predictive_modeling(self,sample_frac,target):
@@ -275,7 +251,7 @@ if __name__ == "__main__":
         skip_download=True,
         skip_preprocessing=True,
         skip_clustering=True,
-        skip_predictive=True,
+        skip_predictive=False,
         skip_cluster_analytics=False,
         use_prediction_v2=False,
         skip_region_predictive=True
