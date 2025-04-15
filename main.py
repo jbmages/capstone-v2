@@ -294,6 +294,6 @@ if __name__ == "__main__":
         skip_predictive=True,
         use_clustering_v2=False,
         use_prediction_v2=False,
-        skip_region_predictive=False
+        skip_region_predictive=True
 
     )
