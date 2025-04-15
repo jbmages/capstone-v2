@@ -75,7 +75,7 @@ class FullWorkflow:
 
             ### REGION PREDICTION
             if not skip_region_predictive:
-                self.predictive_modeling(target='region', sample_frac=0.05)
+                self.predictive_modeling(target='country', sample_frac=0.09)
 
         except Exception:
             traceback.print_exc()
@@ -278,6 +278,6 @@ if __name__ == "__main__":
         skip_predictive=True,
         use_clustering_v2=False,
         use_prediction_v2=False,
-        skip_region_predictive=True
+        skip_region_predictive=False
 
     )
