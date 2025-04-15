@@ -1,5 +1,12 @@
 d3.json("dash-data/cluster_data.json").then(function(loadedData) {
     const data = loadedData;
+    const traitGroupDescriptions = {
+    "EXT": "Extraversion reflects how outgoing, sociable, and energetic a person is. High scorers tend to be assertive and thrive in social environments.",
+    "EST": "Emotional Stability relates to emotional volatility. Higher scores indicate greater sensitivity to stress and mood swings.",
+    "AGR": "Agreeableness measures warmth, kindness, and cooperation. High scorers are generally empathetic, generous, and supportive.",
+    "CSN": "Conscientiousness describes how organized, reliable, and goal-driven a person is. High scorers are often focused, hardworking, and disciplined.",
+    "OPN": "Openness to Experience reflects imagination, curiosity, and a preference for variety and novelty."
+};
     console.log("Data Loaded:", data);
     if (!data || data.length === 0) {
         console.error("Error: No data loaded.");
@@ -55,14 +62,15 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
             .range(d3.schemeTableau10.concat(d3.schemeSet3).slice(0, uniqueClusters.length)); // expand for more clusters
 
         // X scale
-        let x = d3.scaleLinear()
-            .domain(d3.extent(values.map(d => d.value)))
-            .range([40, 580]);
+        let x = d3.scaleBand()
+            .domain([1, 2, 3, 4, 5])
+            .range([60, 340])  // Padding left/right inside the 350px space
+            .padding(0.2);
 
         // Create bins for each cluster separately
         let binGenerator = d3.bin()
-            .domain(x.domain())
-            .thresholds(20);
+            .domain([0.5, 5.5])
+            .thresholds([1, 2, 3, 4, 5, 6]);
 
         let clusteredBins = {};
         uniqueClusters.forEach(cluster => {
@@ -88,8 +96,8 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
         binKeys.forEach(i => {
             let x0 = clusteredBins[uniqueClusters[0]][i].x0;
             let x1 = clusteredBins[uniqueClusters[0]][i].x1;
-            let xPos = x(x0);
-            let binWidth = x(x1) - x(x0) - 1;
+            let xPos = x(x0) + 1;
+            let binWidth = x(x1) - x(x0) - 2;
             let yOffset = 360;
 
             uniqueClusters.forEach(cluster => {
@@ -108,12 +116,29 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
         // X Axis
         svg.append("g")
             .attr("transform", "translate(0,360)")
-            .call(d3.axisBottom(x));
+            .call(d3.axisBottom(x).tickValues([1, 2, 3, 4, 5]));
+
+        // X Axis Label
+        svg.append("text")
+            .attr("x", 300)
+            .attr("y", 440)
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .text("Survey Response (1 = Disagree, 5 = Agree)");
 
         // Y Axis
         svg.append("g")
             .attr("transform", "translate(40,0)")
             .call(d3.axisLeft(y));
+
+        // Y Axis Label
+        svg.append("text")
+            .attr("text-anchor", "middle")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -200)
+            .attr("y", 5)
+            .style("font-size", "12px")
+            .text("Number of Participants out Subset");
 
         // Chart title
         svg.append("text")
@@ -122,6 +147,11 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
             .attr("text-anchor", "middle")
             .style("font-size", "16px")
             .text(`Distribution of ${col} by ${clusterMethod}`);
+
+        // Trait Description
+        const prefix = col.slice(0, 3); 
+        const description = traitGroupDescriptions[prefix] || "This trait is part of the Big Five personality model.";
+        d3.select("#trait-description").text(description);
 
         // Legend
         legend.selectAll("div")

@@ -38,11 +38,14 @@ window.drawHistogram = function(svg, data, column, clusterMethod, color, x, y) {
             if (bin.length > 0) {
                 let height = 360 - y(bin.length);
                 svg.append("rect")
-                    .attr("x", xPos)
+                    .attr("x", xPos + 1)
                     .attr("y", yOffset - height)
-                    .attr("width", binWidth)
+                    .attr("width", binWidth - 2)
                     .attr("height", height)
-                    .attr("fill", color(cluster));
+                    .attr("fill", d3.color(color(cluster)).darker(0.3))
+                    .style("stroke", "#fff")
+                    .style("stroke-width", 0.5)
+                    .style("filter", "drop-shadow(1px 1px 2px rgba(0,0,0,0.15))");
                 yOffset -= height;
             }
         });

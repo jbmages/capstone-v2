@@ -5,7 +5,7 @@ from scripts.preprocess_data import DataPreprocessor
 from scripts.cluster import ClusteringModel
 from scripts.cluster_prediction import ClusterPredictor
 import scripts.utils as utils
-from scripts.region_prediction import PredictiveModel
+from scripts.location_prediction import ImprovedPredictiveModel
 import pandas as pd
 import time
 
@@ -75,7 +75,7 @@ class FullWorkflow:
 
             ### REGION PREDICTION
             if not skip_region_predictive:
-                self.predictive_modeling()
+                self.predictive_modeling(target='region', sample_frac=0.05)
 
         except Exception:
             traceback.print_exc()
@@ -244,18 +244,21 @@ class FullWorkflow:
         except Exception:
             traceback.print_exc()
 
-    def predictive_modeling(self):
+    def predictive_modeling(self,sample_frac,target):
         "Runs the predictive model"""
         try:
             if self.dataset is not None:
-                print("Starting predictive model...")
-                model = PredictiveModel(self.dataset)
-                model.run()
-                print("Predictive model completed.")
+                print(f"Running improved predictive model on target: {target}")
+                model = ImprovedPredictiveModel(
+                    data=self.dataset,
+                    sample_frac=sample_frac,
+                    model_save_path=f"models/improved_rf_{target}.joblib"
+                )
+                model.run(target=target)
             else:
-                print("Predictive modeling didn't work: Dataset is not loaded.")
+                print("Dataset not loaded.")
         except Exception:
-            print("Error in predictive modeling:")
+            print("Improved predictive modeling failed:")
             traceback.print_exc()
 
 
@@ -269,14 +272,12 @@ if __name__ == "__main__":
     print('Initiating workflow..')
     workflow = FullWorkflow(
         dataset_url=GOOGLE_DRIVE_URL,
-        #skip_download=True,
-        #skip_preprocessing=True,
-        #skip_clustering=False,
+        skip_download=True,
+        skip_preprocessing=True,
+        skip_clustering=True,
         skip_predictive=True,
-        use_clustering_v2=True,
-
-
-        use_prediction_v2=True,
+        use_clustering_v2=False,
+        use_prediction_v2=False,
         skip_region_predictive=True
 
     )
