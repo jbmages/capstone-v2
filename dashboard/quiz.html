@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Big Five Personality Quiz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <h1>Big Five Personality Quiz</h1>
+
+    <div id="quiz-container">
+        <div class="progress-bar">
+            <div id="progress" class="progress"></div>
+        </div>
+        <ul id="quiz" class="list-group"></ul>
+
+        <div class="action-buttons">
+            <button id="submit-btn" class="action-button" disabled>Submit</button>
+            <button id="retake-btn" class="action-button hide">Retake Quiz</button>
+        </div>
+
+        <div class="results hide">
+            <h2>Your Results</h2>
+            <div id="results"></div>
+            <div class="action-buttons">
+                <button id="start-over-btn" class="action-button">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS dependencies -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="js/quiz.js"></script>
+</body>
+</html>

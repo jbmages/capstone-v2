@@ -8,7 +8,8 @@ import joblib
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, RandomizedSearchCV
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score, roc_auc_score,classification_report,confusion_matrix
+import json
 from collections import Counter
 from imblearn.under_sampling import RandomUnderSampler
 
@@ -16,7 +17,7 @@ class ImprovedPredictiveModel:
     def __init__(self, data, model_save_path='models/improved_rf_predictive_model.joblib', sample_frac=0.6 ):
         self.data = data.copy()
         self.sample_frac = sample_frac
-        self.target_options = ['region', 'sub-region', 'country', 'latlong']
+        self.target_options = ['region', 'sub-region', 'country']
         self.selected_target = None
         self.X, self.y = None, None
         self.X_train, self.X_test = None, None
@@ -34,7 +35,7 @@ class ImprovedPredictiveModel:
         """
         country_data = pd.read_csv(country_metadata_path)
         self.data = self.data.merge(country_data, on='country', how='left')
-        self.group_small_countries_by_region(min_count=5000)
+        self.group_small_countries_by_region(min_count=3500)
 
         print("Class distribution BEFORE sampling:")
         print(self.data['country'].value_counts().head(20))
@@ -49,7 +50,7 @@ class ImprovedPredictiveModel:
         print("\nClass distribution AFTER sampling:")
         print(self.data['country'].value_counts().head(20))
 
-    def group_small_countries_by_region(self, min_count=5000):
+    def group_small_countries_by_region(self, min_count=3500):
         """
         Replace countries with fewer than `min_count` respondents with their region name.
         """
@@ -95,14 +96,11 @@ class ImprovedPredictiveModel:
         self.X = self.data[self.feature_cols]
 
     def set_target(self, target):
-        if target == 'latlong':
-            self.y = self.data[['lat_appx_lots_of_err', 'long_appx_lots_of_err']]
-        else:
-            self.y = self.label_encoder.fit_transform(self.data[target].astype(str))
-            class_names = self.label_encoder.classes_
-            print("\nLabel encoding for target '{}':".format(target))
-            for i, name in enumerate(class_names):
-                print(f"{i}: {name}")
+        self.y = self.label_encoder.fit_transform(self.data[target].astype(str))
+        class_names = self.label_encoder.classes_
+        print("\nLabel encoding for target '{}':".format(target))
+        for i, name in enumerate(class_names):
+            print(f"{i}: {name}")
         self.selected_target = target
 
     def split_and_resample(self, test_size=0.2):
@@ -118,42 +116,68 @@ class ImprovedPredictiveModel:
                 self.X_train, self.y_train = undersampler.fit_resample(self.X_train, self.y_train)
                 print("Applied undersampling to balance the classes.")
 
-    def train_model(self, use_random_search=True):
-        rf = RandomForestClassifier(random_state=42)
-        if use_random_search:
-            param_dist = {
-                'n_estimators': [100, 150, 200],
-                'max_depth': [10, 20, 30],
-                'min_samples_split': [2, 5, 10],
-                'min_samples_leaf': [1, 2, 4],
-                'max_features': ['sqrt', 'log2']
-            }
-            search = RandomizedSearchCV(rf, param_distributions=param_dist, n_iter=10, cv=3, verbose=1, random_state=42, n_jobs=-1)
-            search.fit(self.X_train, self.y_train)
-            self.model = search.best_estimator_
-            print("Best parameters:", search.best_params_)
-        else:
-            self.model = rf.fit(self.X_train, self.y_train)
+    def train_model(self):
+        """
+        Train a Random Forest classifier using RandomizedSearchCV and save the best model.
+        """
+        print("Training model with RandomizedSearchCV...")
 
-    def evaluate_model(self):
+        param_grid = {
+        'n_estimators': [100, 150, 200, 250, 300],
+        'max_depth': [10, 20, 30, 40, 50, None],
+        'max_features': ['sqrt', 'log2', 0.3, 0.5, 0.7],
+        'min_samples_split': [2, 5, 10, 15],
+        'min_samples_leaf': [1, 2, 4, 6],
+        'max_leaf_nodes': [None, 50, 100, 200],
+        'bootstrap': [True, False]}
+
+        rf = RandomForestClassifier(random_state=42, class_weight='balanced')
+        self.search = RandomizedSearchCV(
+            rf, param_distributions=param_grid,
+            n_iter=25, cv=3, scoring='accuracy', n_jobs=-1, verbose=1, random_state=42
+        )
+
+        self.search.fit(self.X_train, self.y_train)
+        self.model = self.search.best_estimator_
+        self.best_params_ = self.search.best_params_
+        self.grid_search_results_ = pd.DataFrame(self.search.cv_results_)
+
+
+        print("Best parameters found:", self.best_params_)
+
+    def evaluate_model(self, save_path="model_eval/predictive_model_evaluation.csv"):
+        print("Evaluating model...")
         y_pred = self.model.predict(self.X_test)
-        print("\nTest Accuracy:", accuracy_score(self.y_test, y_pred))
-        print("\nClassification Report:")
-        print(classification_report(self.y_test, y_pred))
+        acc = accuracy_score(self.y_test, y_pred)
+        f1 = f1_score(self.y_test, y_pred, average='weighted')
+        report = classification_report(self.y_test, y_pred, target_names=self.label_encoder.classes_, output_dict=True)
 
-        cm = confusion_matrix(self.y_test, y_pred)
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-        plt.title("Confusion Matrix")
-        plt.xlabel("Predicted")
-        plt.ylabel("True")
-        plt.show()
+        print(f"\nTest Accuracy: {acc:.4f}")
+        print(f"\nF1 Score: {f1:.4f}")
+        print("\nClassification Report:")
+        print(report)
+
+        results = {
+            'accuracy': acc,
+            'f1_score': f1,
+            **self.best_params_
+        }
+
+        # Append or save CSV
+        results_df = pd.DataFrame([results])
+        if os.path.exists(save_path):
+            results_df.to_csv(save_path, mode='a', header=False, index=False)
+        else:
+            results_df.to_csv(save_path, index=False)
+
 
     def save_model(self):
         os.makedirs(os.path.dirname(self.model_save_path), exist_ok=True)
         joblib.dump(self.model, self.model_save_path)
+        joblib.dump(self.label_encoder, 'models/label_encoder.joblib')
         print(f"Model saved at {self.model_save_path}")
 
-    def run(self, target='region', country_metadata_path='data/country-data.csv'):
+    def run(self, target='region', country_metadata_path='scoring/country-data.csv'):
         self.join_country_data(country_metadata_path)
         self.analyze_target_correlations()
         self.prepare_features()
