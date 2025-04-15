@@ -2,15 +2,16 @@ import os
 import traceback
 from scripts.download_data import DataDownloader
 from scripts.preprocess_data import DataPreprocessor
-from scripts.cluster import ClusteringModel
+
 from scripts.cluster_prediction import ClusterPredictor
 import scripts.utils as utils
 from scripts.location_prediction import ImprovedPredictiveModel
 import pandas as pd
 import time
 
-# v2 imports
+
 from scripts.clustering import ClusteringWorkflow
+from scripts.cluster_analytics_pipeline import ClusterAnalyticsPipeline
 
 GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0Gga4Rvo5iDrHuHBFGgrP'
 
@@ -18,7 +19,7 @@ GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0
 RAW_DATA_PATH = 'data/data-final.csv'
 CLEANED_DATA_PATH = 'data/cleaned_data_v2.csv'
 CLUSTERED_DATA_PATH = 'data/data_with_clusters.csv'
-
+CLUSTERED_DATA_PATH_V2 = 'scripts/cluster_eval/combined_clusters.csv'
 
 class FullWorkflow:
     """
@@ -59,11 +60,6 @@ class FullWorkflow:
 
             ### CLUSTERING
             if not skip_clustering:
-                if use_clustering_v2:
-                    print('initiating updated clustering workflow')
-                    self.clustering_v2()
-                else:
-                    print('initiating clustering workflow')
                     self.clustering()
 
             ### CLUSTER PREDICTION
@@ -122,27 +118,10 @@ class FullWorkflow:
             traceback.print_exc()
 
     def clustering(self):
-        """Performs clustering on survey data."""
-        try:
-            if self.dataset is not None:
-                print("Starting clustering process...")
-                clustering_model = ClusteringModel(dataset=self.dataset, scoring=self.scoring)
-                clustering_model.assign_clusters()
-                clustering_model.assign_question()
-                clustering_model.csv_to_json()
-
-                print("Clustering completed successfully.")
-            else:
-                print("Clustering aborted: Dataset is not loaded.")
-        except Exception:
-            print("Error in clustering process:")
-            traceback.print_exc()
-
-    def clustering_v2(self):
         """ Comprehensive clustering benchmark """
 
         try:
-            print("[🚀] Starting full clustering grid search...")
+            print("Starting full clustering grid search...")
             # Targeted combinations based on prior findings
             cluster_data_variants = [
                 (['scores'], True),
@@ -152,7 +131,6 @@ class FullWorkflow:
 
             # Expanded hyperparameter space
             model_space = {
-
 
                 'DBScan': {
                     'class': 'DBScan',
@@ -170,7 +148,7 @@ class FullWorkflow:
                 for model_key in model_space.keys():
                     subspace = {model_key: model_space[model_key]}
 
-                    print(f"\n[⚙️ CONFIG] Data: {cluster_data} | FA: {fa_flag} | Model: {model_key}")
+                    print(f"\n[CONFIG] Data: {cluster_data} | FA: {fa_flag} | Model: {model_key}")
 
                     workflow = ClusteringWorkflow(
                         data=self.dataset,
@@ -194,7 +172,7 @@ class FullWorkflow:
             df.to_csv(out_path, index=False)
 
             # Show top results
-            print("\n[🏁 DONE] Top Models by Silhouette Score:")
+            print("\n[DONE] Top Models by Silhouette Score:")
             top_df = df.sort_values(by='silhouette', ascending=False).head(10)
             #print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz', 'density_gain']])
             print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz']])
