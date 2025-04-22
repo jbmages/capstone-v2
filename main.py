@@ -77,7 +77,7 @@ class FullWorkflow:
 
             ### REGION PREDICTION
             if not skip_region_predictive:
-                self.predictive_modeling(target='country', sample_frac=0.09)
+                self.predictive_modeling(target='region', sample_frac=0.2)
 
         except Exception:
             traceback.print_exc()
