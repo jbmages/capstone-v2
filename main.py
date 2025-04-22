@@ -72,11 +72,12 @@ class FullWorkflow:
 
 
             ### CLUSTER PREDICTION
+
+            self.cluster_prediction_v2()
+
             if not skip_predictive:
-                if use_prediction_v2:
-                    self.cluster_prediction_v2()
-                else:
-                    self.cluster_prediction()
+
+                 self.cluster_prediction()
 
             ### REGION PREDICTION
             if not skip_region_predictive:
@@ -217,13 +218,14 @@ class FullWorkflow:
             traceback.print_exc()
 
     def cluster_prediction_v2(self):
+        print('hi hehe')
         """ Runs cluster prediction algorithm """
 
         params = {
             'LogisticRegression': {
                 'class': 'LogisticRegression',
                 'params': {
-                    'penalty': ['l1', 'l2', 'elasticnet'],
+                    'penalty': ['l1', 'l2'],
                     'c': [0.01, 0.1, 1.0, 10],
                     'solver': ['saga'],  # only solver that supports all penalties
                     'max_iter': [200, 500]
@@ -254,11 +256,51 @@ class FullWorkflow:
                     'max_depth': [10, 20, None],
                     'min_samples_split': [2, 5],
                     'min_samples_leaf': [1, 2],
-                    'max_features': ['auto', 'sqrt']
+                    'max_features': [1]
                 }
             }
         }
 
+
+        params_2 = {
+            'LogisticRegression': {
+                'class': 'LogisticRegression',
+                'params': {
+                    'penalty': ['l1'],
+                    'c': [0.01],
+                    'solver': ['saga'],  # only solver that supports all penalties
+                    'max_iter': [200]
+                }
+            },
+            'SVM': {
+                'class': 'SVM',
+                'params': {
+                    'c': [0.01],
+                    'loss': ['hinge'],
+                    'max_iter': [500]
+                }
+            },
+            'NeuralNet': {
+                'class': 'NeuralNet',
+                'params': {
+                    'hidden_layer_sizes': [(64,)],
+                    'alpha': [0.0001],
+                    'solver': ['adam'],
+                    'max_iter': [200],
+                    'learning_rate': [0.001]
+                }
+            },
+            'RandomForest': {
+                'class': 'RandomForest',
+                'params': {
+                    'n_estimators': [100],
+                    'max_depth': [10],
+                    'min_samples_split': [2],
+                    'min_samples_leaf': [1],
+                    'max_features': [1]
+                }
+            }
+        }
         try:
             if os.path.exists(CLUSTERED_DATA_PATH):
                 predictor = PredictionWorkflow(
@@ -269,7 +311,7 @@ class FullWorkflow:
 
                 predictor._prepare_data()
                 predictor.grid_search()
-                predictor.save_best_model("model_eval/final_model.joblib")
+                #predictor.save_best_model("model_eval/final_model.joblib")
 
         except Exception as e:
             print('failed')
@@ -306,9 +348,9 @@ if __name__ == "__main__":
         skip_download=True,
         skip_preprocessing=True,
         skip_clustering=True,
-        skip_predictive=False,
-        skip_cluster_analytics=False,
-        use_prediction_v2=False,
+        skip_predictive=True,
+        skip_cluster_analytics=True,
+        use_prediction_v2=True,
         skip_region_predictive=True
 
     )

@@ -110,6 +110,104 @@ class Hierarchical(ClusteringModel):
         self.data = self.data
 
 
+
+
+class KMeansHomegrown(ClusteringModel):
+    def __init__(self, data, params):
+        super().__init__()
+        self.data = data
+        self.params = params
+        self.k = self.params.get('n_clusters', 5)
+        self.max_iters = self.params.get('max_iter', 100)
+        self.tol = self.params.get('tol', 1e-6)
+
+    def initialize_centroids(self, X):
+        return np.random.uniform(np.amin(X, axis=0), np.amax(X, axis=0), size=(self.k, X.shape[1]))
+
+    def euclidean(self, datapoint, centroids):
+        return np.sqrt(np.sum((centroids - datapoint)**2, axis=1))
+
+    def fit(self):
+        X = self.data
+        centroids = self.initialize_centroids(X)
+        assignments = 0
+
+        for _ in range(self.max_iters):
+            assignments = np.array([np.argmin(self.euclidean(x, centroids)) for x in X])
+            new_centroids = np.array([np.mean(X[assignments == i], axis=0) for i in range(self.k)])
+
+            if np.max(np.abs(new_centroids - centroids)) < self.tol:
+                break
+
+            centroids = new_centroids
+
+        self.labels_ = assignments
+        self.data = self.data  # store data for evaluation
+        self.evaluate()
+
+    class GMMHomegrown(ClusteringModel):
+        def __init__(self, data, params):
+            super().__init__()
+            self.data = data
+            self.params = params
+            self.k = self.params.get('n_components', 3)
+            self.max_iters = self.params.get('max_iter', 100)
+            self.tol = self.params.get('tol', 1e-4)
+
+        def _gaussian_pdf(self, X, mean, cov):
+            n = X.shape[1]
+            cov_inv = np.linalg.inv(cov)
+            cov_det = np.linalg.det(cov)
+            norm_factor = 1 / np.sqrt((2 * np.pi) ** n * cov_det)
+            diff = X - mean
+            exp_term = np.exp(-0.5 * np.sum(diff @ cov_inv * diff, axis=1))
+            return norm_factor * exp_term
+
+        def fit(self):
+            X = self.data
+            N, D = X.shape
+            np.random.seed(42)
+
+            # Initialize parameters
+            self.pi = np.full(self.k, 1 / self.k)
+            self.mu = X[np.random.choice(N, self.k, replace=False)]
+            self.sigma = np.array([np.eye(D)] * self.k)
+
+            log_likelihood_old = 0
+            responsibilities = 0
+            for _ in range(self.max_iters):
+                # E-step
+                responsibilities = np.zeros((N, self.k))
+                for k in range(self.k):
+                    responsibilities[:, k] = self.pi[k] * self._gaussian_pdf(X, self.mu[k], self.sigma[k])
+                responsibilities /= np.sum(responsibilities, axis=1, keepdims=True)
+
+                # M-step
+                N_k = np.sum(responsibilities, axis=0)
+                self.pi = N_k / N
+                self.mu = (responsibilities.T @ X) / N_k[:, None]
+                for k in range(self.k):
+                    diff = X - self.mu[k]
+                    weighted_sum = np.zeros((D, D))
+                    for i in range(N):
+                        weighted_sum += responsibilities[i, k] * np.outer(diff[i], diff[i])
+                    self.sigma[k] = weighted_sum / N_k[k]
+
+                # Check for convergence via log-likelihood
+                log_likelihood = np.sum(np.log(np.sum([
+                    self.pi[k] * self._gaussian_pdf(X, self.mu[k], self.sigma[k]) for k in range(self.k)
+                ], axis=0)))
+
+                if np.abs(log_likelihood - log_likelihood_old) < self.tol:
+                    break
+                log_likelihood_old = log_likelihood
+
+            self.labels_ = np.argmax(responsibilities, axis=1)
+            self.data = self.data  # store data for evaluation
+            self.evaluate()
+
+
+
 class PredictionModel:
     def __init__(self, X_train, X_test, y_train, y_test):
         self.X_train = X_train
