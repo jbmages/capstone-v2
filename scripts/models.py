@@ -349,6 +349,31 @@ class PredictionModel:
             'bic': bic
         }
 
+    def _score_and_print(self, y_pred, y_proba, name, duration=None):
+        acc = accuracy_score(self.y_test, y_pred)
+        auc = roc_auc_score(self.y_test, y_proba, multi_class='ovr') if y_proba is not None else None
+        mse = mean_squared_error(self.y_test, y_pred)
+        logloss = log_loss(self.y_test, y_proba) if y_proba is not None else None
+        n = len(self.y_test)
+        k = self.X_test.shape[1]
+        bic = logloss * n + k * np.log(n) if logloss is not None else None
+
+        print(f"\n{name} Accuracy: {acc:.4f}")
+        if auc is not None: print(f"{name} AUC: {auc:.4f}")
+        print(f"{name} MSE: {mse:.4f}")
+        if bic is not None: print(f"{name} BIC: {bic:.2f}")
+        if duration is not None:
+            print(f"Time: {duration:.2f} sec")
+        print("Classification Report:\n", classification_report(self.y_test, y_pred))
+
+        return {
+            'accuracy': acc,
+            'auc': auc,
+            'mse': mse,
+            'log_loss': logloss,
+            'bic': bic
+        }
+
 
 class LogisticRegression(PredictionModel):
     def __init__(self, X_train, X_test, y_train, y_test, params):
@@ -456,7 +481,7 @@ class LogisticRegressionHomegrown(PredictionModel):
         probs_test = self.softmax(logits_test)
         y_pred = np.argmax(probs_test, axis=1)
 
-        return self.evaluate(y_pred, probs_test, "Logistic Regression (Homegrown)")
+        return self._score_and_print(y_pred, probs_test, "Logistic Regression (Homegrown)")
 
 
 class SVMHomegrown(PredictionModel):
@@ -490,7 +515,7 @@ class SVMHomegrown(PredictionModel):
         scores = np.array([X @ w + b for w, b in classifiers]).T
         y_pred = np.argmax(scores, axis=1)
 
-        return self.evaluate(y_pred, None, "SVM (Homegrown)")
+        return self._score_and_print(y_pred, None, "SVM (Homegrown)")
 
 
 class RandomForestHomegrown(PredictionModel):
@@ -555,7 +580,7 @@ class RandomForestHomegrown(PredictionModel):
             self.trees.append(tree)
 
         predictions = [np.bincount([self.predict_tree(tree, x) for tree in self.trees]).argmax() for x in self.X_test]
-        return self.evaluate(np.array(predictions), None, "Random Forest (Homegrown)")
+        return self._score_and_print(np.array(predictions), None, "Random Forest (Homegrown)")
 
 
 class NeuralNetHomegrown(PredictionModel):
@@ -631,4 +656,4 @@ class NeuralNetHomegrown(PredictionModel):
         probs_test = forward(self.X_test)
         y_pred = np.argmax(probs_test, axis=1)
 
-        return self.evaluate(y_pred, probs_test, "Neural Net (Homegrown)")
+        return self._score_and_print(y_pred, probs_test, "Neural Net (Homegrown)")

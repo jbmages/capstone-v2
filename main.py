@@ -72,8 +72,8 @@ class FullWorkflow:
 
 
             ### CLUSTER PREDICTION
-            self.clustering()
-            #self.cluster_prediction_v2()
+
+            self.cluster_prediction_v2()
 
             if not skip_predictive:
 
@@ -315,6 +315,11 @@ class FullWorkflow:
         }
         try:
             if os.path.exists(CLUSTERED_DATA_PATH):
+
+                original_count = len(utils.retrieve_data(CLUSTERED_DATA_PATH_V2))
+                print('ORIGINAL COUNT', original_count)
+
+
                 predictor = PredictionWorkflow(
                     data=utils.retrieve_data(CLUSTERED_DATA_PATH_V2),
                     scoring=self.scoring,
