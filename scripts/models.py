@@ -17,13 +17,14 @@ from sklearn.metrics import (accuracy_score, roc_auc_score, mean_squared_error,
                              log_loss, classification_report)
 from scipy.spatial import distance
 import numpy as np
+import Counter
 
 
 class ClusteringModel:
     def __init__(self):
         self.labels_ = None
         self.scores = {}
-
+        self.use_homegrown = False
     def _homegrown_silhouette(self, X, labels):
         n = X.shape[0]
         unique_labels = set(labels)
@@ -413,3 +414,221 @@ class RandomForest(PredictionModel):
             random_state=42
         )
         return self.evaluate(model, "Random Forest")
+
+
+class LogisticRegressionHomegrown(PredictionModel):
+    def __init__(self, X_train, X_test, y_train, y_test, params):
+        super().__init__(X_train, X_test, y_train, y_test)
+        self.params = params
+        self.lr = 0.1
+        self.max_iter = self.params.get('max_iter', 1000)
+        self.penalty = self.params.get('penalty', 'l2')
+        self.C = self.params.get('c', 1.0)
+
+    def softmax(self, z):
+        exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))
+        return exp_z / np.sum(exp_z, axis=1, keepdims=True)
+
+    def one_hot(self, y):
+        n_classes = np.max(y) + 1
+        return np.eye(n_classes)[y]
+
+    def run(self):
+        X, y = self.X_train, self.y_train
+        X = np.hstack([np.ones((X.shape[0], 1)), X])
+        y_oh = self.one_hot(y)
+        n_classes = y_oh.shape[1]
+
+        self.weights = np.zeros((X.shape[1], n_classes))
+
+        for _ in range(self.max_iter):
+            logits = X @ self.weights
+            probs = self.softmax(logits)
+            grad = X.T @ (probs - y_oh) / X.shape[0]
+
+            if self.penalty == 'l2':
+                grad += self.weights / self.C
+
+            self.weights -= self.lr * grad
+
+        X_test = np.hstack([np.ones((self.X_test.shape[0], 1)), self.X_test])
+        logits_test = X_test @ self.weights
+        probs_test = self.softmax(logits_test)
+        y_pred = np.argmax(probs_test, axis=1)
+
+        return self.evaluate(y_pred, probs_test, "Logistic Regression (Homegrown)")
+
+
+class SVMHomegrown(PredictionModel):
+    def __init__(self, X_train, X_test, y_train, y_test, params):
+        super().__init__(X_train, X_test, y_train, y_test)
+        self.params = params
+        self.C = self.params.get('c', 1.0)
+        self.max_iter = self.params.get('max_iter', 1000)
+
+    def run(self):
+        X, y = self.X_train, self.y_train
+        y_unique = np.unique(y)
+        n_classes = len(y_unique)
+        classifiers = []
+
+        for c in y_unique:
+            y_binary = np.where(y == c, 1, -1)
+            w = np.zeros(X.shape[1])
+            b = 0
+            lr = 0.01
+
+            for _ in range(self.max_iter):
+                for i in range(len(y_binary)):
+                    if y_binary[i] * (np.dot(X[i], w) + b) < 1:
+                        w += lr * (y_binary[i] * X[i] - 2 * (1 / self.C) * w)
+                        b += lr * y_binary[i]
+                    else:
+                        w -= lr * 2 * (1 / self.C) * w
+            classifiers.append((w, b))
+
+        scores = np.array([X @ w + b for w, b in classifiers]).T
+        y_pred = np.argmax(scores, axis=1)
+
+        return self.evaluate(y_pred, None, "SVM (Homegrown)")
+
+
+class RandomForestHomegrown(PredictionModel):
+    def __init__(self, X_train, X_test, y_train, y_test, params):
+        super().__init__(X_train, X_test, y_train, y_test)
+        self.params = params
+        self.n_estimators = self.params.get('n_estimators', 10)
+        self.max_depth = self.params.get('max_depth', 5)
+        self.trees = []
+
+    def gini_impurity(self, y):
+        classes = np.unique(y)
+        impurity = 1.0
+        for c in classes:
+            p = np.sum(y == c) / len(y)
+            impurity -= p ** 2
+        return impurity
+
+    def best_split(self, X, y):
+        best_gini = float('inf')
+        best_index, best_value = None, None
+        for index in range(X.shape[1]):
+            thresholds = np.unique(X[:, index])
+            for value in thresholds:
+                left = y[X[:, index] <= value]
+                right = y[X[:, index] > value]
+                if len(left) == 0 or len(right) == 0:
+                    continue
+                gini = (len(left) * self.gini_impurity(left) + len(right) * self.gini_impurity(right)) / len(y)
+                if gini < best_gini:
+                    best_gini = gini
+                    best_index, best_value = index, value
+        return best_index, best_value
+
+    def build_tree(self, X, y, depth):
+        if len(set(y)) == 1 or depth == 0:
+            return Counter(y).most_common(1)[0][0]
+        idx, val = self.best_split(X, y)
+        if idx is None:
+            return Counter(y).most_common(1)[0][0]
+        left_mask = X[:, idx] <= val
+        right_mask = X[:, idx] > val
+        left_branch = self.build_tree(X[left_mask], y[left_mask], depth - 1)
+        right_branch = self.build_tree(X[right_mask], y[right_mask], depth - 1)
+        return idx, val, left_branch, right_branch
+
+    def predict_tree(self, tree, x):
+        if not isinstance(tree, tuple):
+            return tree
+        idx, val, left, right = tree
+        if x[idx] <= val:
+            return self.predict_tree(left, x)
+        else:
+            return self.predict_tree(right, x)
+
+    def run(self):
+        for _ in range(self.n_estimators):
+            indices = np.random.choice(len(self.X_train), len(self.X_train), replace=True)
+            X_sample = self.X_train[indices]
+            y_sample = self.y_train[indices]
+            tree = self.build_tree(X_sample, y_sample, self.max_depth)
+            self.trees.append(tree)
+
+        predictions = [np.bincount([self.predict_tree(tree, x) for tree in self.trees]).argmax() for x in self.X_test]
+        return self.evaluate(np.array(predictions), None, "Random Forest (Homegrown)")
+
+
+class NeuralNetHomegrown(PredictionModel):
+    def __init__(self, X_train, X_test, y_train, y_test, params):
+        super().__init__(X_train, X_test, y_train, y_test)
+        self.params = params
+        self.hidden_sizes = self.params.get('hidden_layer_sizes', (64,))
+        self.alpha = self.params.get('alpha', 0.0001)
+        self.learning_rate = self.params.get('learning_rate', 0.01)
+        self.max_iter = self.params.get('max_iter', 200)
+
+    def one_hot(self, y):
+        n_classes = np.max(y) + 1
+        return np.eye(n_classes)[y]
+
+    def relu(self, z):
+        return np.maximum(0, z)
+
+    def relu_deriv(self, z):
+        return (z > 0).astype(float)
+
+    def softmax(self, z):
+        exp_z = np.exp(z - np.max(z, axis=1, keepdims=True))
+        return exp_z / np.sum(exp_z, axis=1, keepdims=True)
+
+    def run(self):
+        np.random.seed(42)
+        X, y = self.X_train, self.y_train
+        y_oh = self.one_hot(y)
+        layers = [X.shape[1]] + list(self.hidden_sizes) + [y_oh.shape[1]]
+
+        # Weight initialization
+        weights = [np.random.randn(layers[i], layers[i+1]) * 0.01 for i in range(len(layers) - 1)]
+        biases = [np.zeros((1, size)) for size in layers[1:]]
+
+        for _ in range(self.max_iter):
+            # Forward pass
+            activations = [X]
+            z_values = []
+            for W, b in zip(weights[:-1], biases[:-1]):
+                z = activations[-1] @ W + b
+                z_values.append(z)
+                a = self.relu(z)
+                activations.append(a)
+            z = activations[-1] @ weights[-1] + biases[-1]
+            z_values.append(z)
+            probs = self.softmax(z)
+            activations.append(probs)
+
+            # Backward pass
+            delta = probs - y_oh
+            grads_w = [activations[-2].T @ delta / X.shape[0]]
+            grads_b = [np.sum(delta, axis=0, keepdims=True) / X.shape[0]]
+
+            for i in range(len(layers) - 2, 0, -1):
+                delta = (delta @ weights[i].T) * self.relu_deriv(z_values[i-1])
+                grads_w.insert(0, activations[i-1].T @ delta / X.shape[0])
+                grads_b.insert(0, np.sum(delta, axis=0, keepdims=True) / X.shape[0])
+
+            # Regularization and update
+            for i in range(len(weights)):
+                grads_w[i] += self.alpha * weights[i]
+                weights[i] -= self.learning_rate * grads_w[i]
+                biases[i] -= self.learning_rate * grads_b[i]
+
+        # Prediction
+        def forward(X_):
+            a = X_
+            for i in range(len(weights) - 1):
+                a = self.relu(a @ weights[i] + biases[i])
+            return self.softmax(a @ weights[-1] + biases[-1])
+
+        probs_test = forward(self.X_test)
+        y_pred = np.argmax(probs_test, axis=1)
+
+        return self.evaluate(y_pred, probs_test, "Neural Net (Homegrown)")

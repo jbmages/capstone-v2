@@ -5,17 +5,16 @@ import pandas as pd
 from tqdm import tqdm
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import FactorAnalysis
-from scripts.models import KMeans, GMM, DBScan, Hierarchical
+from scripts.models import *
 from sklearn.neighbors import KernelDensity
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
-
 class ClusteringWorkflow:
     def __init__(self, data, scoring_table, cluster_data, model_space,
-                 max_time=1200, data_subset=0.06, save_results=True,
+                 max_time=2400, data_subset=0.06, save_results=True,
                  apply_factor_analysis=False, n_factors=5):
         self.raw_data = data
         self.scoring = scoring_table
@@ -30,7 +29,10 @@ class ClusteringWorkflow:
             'KMeans': KMeans,
             'GMM': GMM,
             'DBScan': DBScan,
-            'Hierarchical': Hierarchical
+            'Hierarchical': Hierarchical,
+            'KMeansHomegrown': KMeansHomegrown,
+            'GMMHomegrown': GMMHomegrown,
+            'DBScanHomegrown': DBScanHomegrown
         }
 
         self.prep_data(cluster_data, data_subset)
@@ -75,6 +77,9 @@ class ClusteringWorkflow:
     def grid_search(self):
         results = []
         start_time = time.time()
+        timestamp = time.strftime("%Y%m%d")
+        os.makedirs("model_eval", exist_ok=True)
+        partial_path = f"model_eval/live_grid_results_{timestamp}.csv"
 
         for model_name, config in self.model_space.items():
             keys, values = zip(*config['params'].items())
@@ -84,45 +89,44 @@ class ClusteringWorkflow:
 
             for param_combo in tqdm(itertools.product(*values), desc=f"Evaluating {model_name}", ncols=100):
                 param_dict = dict(zip(keys, param_combo))
-                model = model_class(self.data, param_dict)
-                model.fit()
-                model.evaluate()
+                try:
+                    model = model_class(self.data, param_dict)
+                    model.fit()
+                    model.evaluate()
 
-                result = {
-                    'model': model_name,
-                    'data_type': '+'.join(self.cluster_data_type),
-                    'factor_analysis': self.apply_factor_analysis,
-                    **param_dict,
-                    **model.scores,
-                }
+                    result = {
+                        'model': model_name,
+                        'data_type': '+'.join(self.cluster_data_type),
+                        'factor_analysis': self.apply_factor_analysis,
+                        **param_dict,
+                        **model.scores,
+                    }
 
-                if hasattr(model, 'labels_'):
-                    result['n_clusters_found'] = len(set(model.labels_)) - (1 if -1 in model.labels_ else 0)
-                    self.save_cluster_assignments(model_name, param_dict, model.labels_)
+                    if hasattr(model, 'labels_'):
+                        result['n_clusters_found'] = len(set(model.labels_)) - (1 if -1 in model.labels_ else 0)
+                        #self.save_cluster_assignments(model_name, param_dict, model.labels_)
 
-                results.append(result)
+                    results.append(result)
 
-                df_partial = pd.DataFrame(results)
-                os.makedirs("model_eval", exist_ok=True)
-                timestamp = time.strftime("%Y%m%d")
-                partial_path = f"model_eval/live_grid_results_{timestamp}.csv"
-                df_partial.to_csv(partial_path, index=False)
+                    # Save partial CSV after each successful run
+                    df_partial = pd.DataFrame(results)
+                    df_partial.to_csv(partial_path, index=False)
+                    print(f"[RESULT] {model_name} | {param_dict} | {model.scores}")
 
-                print(f"[RESULT] {model_name} | {param_dict} | {model.scores}")
+                except Exception as e:
+                    print(f"[ERROR] {model_name} with {param_dict} failed: {e}")
 
                 if time.time() - start_time > self.max_time:
                     print("[WARNING] Max time exceeded. Ending early.")
                     break
 
         if self.save_results:
-            os.makedirs("model_eval", exist_ok=True)
             df = pd.DataFrame(results)
-            timestamp = time.strftime("%Y%m%d-%H%M%S")
-            df.to_csv(f"model_eval/clustering_results_{timestamp}.csv", index=False)
-            print(f"[SAVED] clustering_results_{timestamp}.csv")
+            final_path = f"model_eval/clustering_results_{timestamp}_{int(time.time())}.csv"
+            df.to_csv(final_path, index=False)
+            print(f"[SAVED] {final_path}")
 
         return results
-
 
     def kde_density_comparison(self, labels, n_trials=10):
         kde = KernelDensity(kernel='gaussian', bandwidth=0.5).fit(self.data)
@@ -142,6 +146,3 @@ class ClusteringWorkflow:
             'null_avg_density': null_mean,
             'density_gain': density_gain
         }
-
-
-

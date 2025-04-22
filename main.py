@@ -64,16 +64,16 @@ class FullWorkflow:
             self.dataset = self.load_dataset()
 
             ### CLUSTERING
-            if not skip_clustering:
-                self.clustering()
+
+
 
             if not skip_cluster_analytics:
                 self.clustering_analytics()
 
 
             ### CLUSTER PREDICTION
-
-            self.cluster_prediction_v2()
+            self.clustering()
+            #self.cluster_prediction_v2()
 
             if not skip_predictive:
 
@@ -142,12 +142,21 @@ class FullWorkflow:
             # Expanded hyperparameter space
             model_space = {
 
-                'DBScan': {
-                    'class': 'DBScan',
+                'GMM': {
+                    'class': 'GMMHomegrown',
                     'params': {
-                        'eps': [1.0, 1.5, 2.0],
-                        'min_samples': [8, 12, 16, 20],
-                        'n_factors': [5]  # NEW
+                        'n_components': [3, 4, 5, 6],
+                        'max_iter': [50, 100],
+                        'tol': [1e-3, 1e-4],
+                        'n_factors': [5]
+                    }
+                },
+                'DBScan': {
+                    'class': 'DBScanHomegrown',
+                    'params': {
+                        'eps': [0.5, 1.0, 1.5],
+                        'min_samples': [5, 10, 15],
+                        'n_factors': [5]
                     }
                 }
             }
