@@ -6,8 +6,7 @@ from scripts.clustering import ClusteringWorkflow
 from scripts.cluster_analytics_pipeline import ClusterAnalyticsPipeline
 
 
-from scripts.cluster_prediction import ClusterPredictor
-from scripts.cluster_prediction_v2 import PredictionWorkflow
+from scripts.cluster_prediction import PredictionWorkflow
 import scripts.utils as utils
 from scripts.location_prediction import ImprovedPredictiveModel
 import pandas as pd
@@ -213,25 +212,7 @@ class FullWorkflow:
             import traceback
             print("[ERROR] Exception occurred in clustering analytics pipeline:")
             traceback.print_exc()
-
-    def cluster_prediction(self):
-        """ Runs cluster prediction algorithm """
-        try:
-            if os.path.exists(CLUSTERED_DATA_PATH):
-
-                predictor = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH_V2),
-                                                   scoring=self.scoring)
-                predictor.train_all()
-
-                # Plot accuracies
-                predictor.plot_model_accuracies()
-
-        except Exception:
-            print('failed')
-            traceback.print_exc()
-
     def cluster_prediction_v2(self):
-        print('hi hehe')
         """ Runs cluster prediction algorithm """
 
         params = {
@@ -273,36 +254,6 @@ class FullWorkflow:
                 }
             }
         }
-        """
-        'NeuralNet': {
-                'class': 'HGNeuralNet',
-                'params': {
-                    'hidden_layer_sizes': [(64,)],
-                    'alpha': [0.0001],
-                    'solver': ['adam'],
-                    'max_iter': [200],
-                    'learning_rate': [0.001]
-                }
-            },
-            'LogisticRegression': {
-                'class': 'HGLogisticRegression',
-                'params': {
-                    'penalty': ['l1'],
-                    'c': [0.01],
-                    'solver': ['saga'],  # only solver that supports all penalties
-                    'max_iter': [200]
-                }
-            },
-            'SVM': {
-                'class': 'HGSVM',
-                'params': {
-                    'c': [0.01],
-                    'loss': ['hinge'],
-                    'max_iter': [500]
-                }
-            },
-        
-        """
 
         params_2 = {
 
@@ -337,28 +288,6 @@ class FullWorkflow:
         except Exception as e:
             print('failed')
             print(str(e))
-
-    def predictive_modeling(self,sample_frac,target):
-        "Runs the predictive model"""
-        try:
-            if self.dataset is not None:
-                print(f"Running improved predictive model on target: {target}")
-                model = ImprovedPredictiveModel(
-                    data=self.dataset,
-                    sample_frac=sample_frac,
-                    model_save_path=f"models/improved_rf_{target}.joblib"
-                )
-                model.run(target=target)
-            else:
-                print("Dataset not loaded.")
-        except Exception:
-            print("Improved predictive modeling failed:")
-            traceback.print_exc()
-
-
-    #########################################################
-    #########################################################
-    #########################################################
 
 
 if __name__ == "__main__":

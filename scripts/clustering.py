@@ -133,39 +133,4 @@ class ClusteringWorkflow:
 
         return results
 
-    def kde_density_comparison(self, labels, n_trials=10, bandwidth=0.25):
-        kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(self.data)
-        log_densities = kde.score_samples(self.data)
-        densities = np.exp(log_densities)
-
-        cluster_info = []
-        unique_labels = [label for label in np.unique(labels) if label != -1]
-
-        for label in unique_labels:
-            cluster_indices = np.where(labels == label)[0]
-            cluster_density = np.mean(densities[cluster_indices])
-
-            # Null model: shuffle each dimension independently
-            null_densities = []
-            for _ in range(n_trials):
-                permuted_data = np.copy(self.data)
-                for col in range(permuted_data.shape[1]):
-                    np.random.shuffle(permuted_data[:, col])
-                kde_null = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(permuted_data)
-                null_density_samples = np.exp(kde_null.score_samples(permuted_data))
-                null_densities.append(np.mean(null_density_samples[cluster_indices]))
-
-            null_mean = np.mean(null_densities)
-            enrichment = cluster_density / null_mean
-            p_value = np.mean([1 if cluster_density < d else 0 for d in null_densities])
-
-            cluster_info.append({
-                'cluster': label,
-                'avg_density': cluster_density,
-                'null_avg_density': null_mean,
-                'enrichment': enrichment,
-                'p_value': p_value
-            })
-
-        return pd.DataFrame(cluster_info)
 

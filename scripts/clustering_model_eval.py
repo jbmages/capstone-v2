@@ -37,7 +37,7 @@ def thing():
 
     # Save
     df.to_csv(os.path.join(output_dir, 'combined_clusters.csv'), index=False)
-
+"""
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -70,3 +70,53 @@ plt.grid(True)
 plt.gca().invert_xaxis()  # Reverse x-axis to show better models on right
 plt.tight_layout()
 plt.show()
+"""
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load data
+results = pd.read_csv('../model_eval/gridsearch_all_models_20250412-215308.csv')
+
+# Filter to GMM and KMeans
+results = results[results['model'].str.lower().isin(['gmm', 'kmeans'])]
+results['model'] = results['model'].str.upper()
+
+# Metrics to plot
+metrics = ['silhouette', 'calinski_harabasz', 'davies_bouldin']
+titles = {
+    'silhouette': 'Silhouette Score (Higher is Better)',
+    'calinski_harabasz': 'Calinski-Harabasz Score (Higher is Better)',
+    'davies_bouldin': 'Davies-Bouldin Index (Lower is Better)'
+}
+
+# Plot heatmap for each metric
+sns.set(style="whitegrid", font_scale=1.2)
+
+for metric in metrics:
+    pivot = results.pivot_table(
+        index='n_clusters_found',
+        columns='model',
+        values=metric,
+        aggfunc='mean'
+    )
+
+    if pivot.empty:
+        continue
+
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(
+        pivot,
+        annot=True,
+        fmt=".2f",
+        cmap='YlGnBu',
+        linewidths=0.3,
+        linecolor='gray',
+        cbar_kws={'label': metric}
+    )
+    plt.title(titles[metric], fontsize=16, fontweight='bold')
+    plt.xlabel('Model')
+    plt.ylabel('Clusters Found')
+    plt.tight_layout()
+    plt.show()
