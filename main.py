@@ -280,10 +280,6 @@ class FullWorkflow:
                     'learning_rate': [0.001]
                 }
             },
-        
-        """
-
-        params_2 = {
             'LogisticRegression': {
                 'class': 'HGLogisticRegression',
                 'params': {
@@ -301,6 +297,10 @@ class FullWorkflow:
                     'max_iter': [500]
                 }
             },
+        
+        """
+
+        params_2 = {
 
             'RandomForest': {
                 'class': 'HGRandomForest',

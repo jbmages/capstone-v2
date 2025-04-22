@@ -39,26 +39,46 @@ class PredictionWorkflow:
 
     def _prepare_data(self):
         print("Preparing data...")
+
+        # Map column IDs to trait descriptions
         id_to_question = dict(zip(self.scoring['id'], self.scoring['trait']))
         original_cols = list(self.data.columns[:50])
         new_cols = [f"{col}: {id_to_question.get(col, '')}" for col in original_cols]
         self.data.columns = new_cols + list(self.data.columns[50:])
 
-        max_val = self.data[self.cluster_type].max()
+        # Print dataset info
         original_count = len(self.data)
         print('ORIGINAL COUNT', original_count)
         print('DATASET LENGTH', original_count)
-        self.filtered_data = self.data
-        print(f"Filtered out {original_count - len(self.filtered_data)} rows ({(original_count - len(self.filtered_data))/original_count:.2%})")
 
+        # Filtering logic (placeholder for now)
+        self.filtered_data = self.data
+        print(
+            f"Filtered out {original_count - len(self.filtered_data)} rows ({(original_count - len(self.filtered_data)) / original_count:.2%})")
+
+        # Subset if needed
         if self.use_subset and len(self.filtered_data) > self.subset_size:
             print(f"Using subset of {self.subset_size} rows")
-            self.filtered_data = self.filtered_data.sample(self.subset_size, random_state=42)
+            self.filtered_data = self.filtered_data.sample(n=self.subset_size, random_state=42).reset_index(drop=True)
+        else:
+            self.filtered_data = self.filtered_data.reset_index(drop=True)
 
+        # Feature and label extraction
         self.X = self.filtered_data.iloc[:, :50]
         self.y = self.filtered_data[self.cluster_type]
 
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=self.test_size, random_state=42)
+        # Train/test split
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            self.X, self.y, test_size=self.test_size, random_state=42
+        )
+
+        # Reset indices to avoid mismatch during evaluation
+        self.X_train = self.X_train.reset_index(drop=True)
+        self.X_test = self.X_test.reset_index(drop=True)
+        self.y_train = self.y_train.reset_index(drop=True)
+        self.y_test = self.y_test.reset_index(drop=True)
+
+        # Scale features
         self.X_train_scaled = self.scaler.fit_transform(self.X_train)
         self.X_test_scaled = self.scaler.transform(self.X_test)
 
