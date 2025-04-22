@@ -48,7 +48,7 @@ class PredictionWorkflow:
         original_count = len(self.data)
         print('ORIGINAL COUNT', original_count)
         print('DATASET LENGTH', original_count)
-        self.filtered_data = self.data[self.data[self.cluster_type] != max_val]
+        self.filtered_data = self.data
         print(f"Filtered out {original_count - len(self.filtered_data)} rows ({(original_count - len(self.filtered_data))/original_count:.2%})")
 
         if self.use_subset and len(self.filtered_data) > self.subset_size:
