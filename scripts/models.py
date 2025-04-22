@@ -17,7 +17,7 @@ from sklearn.metrics import (accuracy_score, roc_auc_score, mean_squared_error,
                              log_loss, classification_report)
 from scipy.spatial import distance
 import numpy as np
-import Counter
+from collections import Counter
 
 
 class ClusteringModel:

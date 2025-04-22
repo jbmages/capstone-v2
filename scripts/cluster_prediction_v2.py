@@ -12,7 +12,8 @@ import seaborn as sns
 from scripts.models import *
 
 class PredictionWorkflow:
-    def __init__(self, data, scoring, cluster_type='gmm_4_both_cluster', test_size=0.2, use_subset=True, subset_size=100000, params={}):
+    def __init__(self, data, scoring, cluster_type='gmm_4_both_cluster', test_size=0.2, use_subset=True, subset_size=100000, params={},
+                 time_limit = 2400):
         self.data = data.copy()
         self.scoring = scoring
         self.cluster_type = cluster_type
@@ -21,6 +22,7 @@ class PredictionWorkflow:
         self.subset_size = subset_size
         self.params = params
         self.scaler = StandardScaler()
+        self.time_limit = time_limit
         self.best_model = None
         self.best_model_name = None
 
@@ -28,7 +30,11 @@ class PredictionWorkflow:
             'LogisticRegression': LogisticRegression,
             'SVM': SVM,
             'NeuralNet': NeuralNet,
-            'RandomForest': RandomForest
+            'RandomForest': RandomForest,
+            'HGLogisticRegression': LogisticRegressionHomegrown,
+            'HGSVM': SVMHomegrown,
+            'HGNeuralNet': NeuralNetHomegrown,
+            'HGRandomForest': RandomForestHomegrown
         }
 
     def _prepare_data(self):
@@ -61,6 +67,11 @@ class PredictionWorkflow:
         start_time = time.time()
 
         for model_name, config in self.params.items():
+
+            if time.time() - start_time > self.time_limit:
+                print("[WARNING] Max time exceeded. Ending early.")
+                break
+
             print(f"\nModel: {model_name}")
             keys, values = zip(*config['params'].items())
             model_class = self.MODEL_CLASS_MAP.get(config['class'])

@@ -269,28 +269,9 @@ class FullWorkflow:
                 }
             }
         }
-
-
-        params_2 = {
-            'LogisticRegression': {
-                'class': 'LogisticRegression',
-                'params': {
-                    'penalty': ['l1'],
-                    'c': [0.01],
-                    'solver': ['saga'],  # only solver that supports all penalties
-                    'max_iter': [200]
-                }
-            },
-            'SVM': {
-                'class': 'SVM',
-                'params': {
-                    'c': [0.01],
-                    'loss': ['hinge'],
-                    'max_iter': [500]
-                }
-            },
-            'NeuralNet': {
-                'class': 'NeuralNet',
+        """
+        'NeuralNet': {
+                'class': 'HGNeuralNet',
                 'params': {
                     'hidden_layer_sizes': [(64,)],
                     'alpha': [0.0001],
@@ -299,8 +280,30 @@ class FullWorkflow:
                     'learning_rate': [0.001]
                 }
             },
+        
+        """
+
+        params_2 = {
+            'LogisticRegression': {
+                'class': 'HGLogisticRegression',
+                'params': {
+                    'penalty': ['l1'],
+                    'c': [0.01],
+                    'solver': ['saga'],  # only solver that supports all penalties
+                    'max_iter': [200]
+                }
+            },
+            'SVM': {
+                'class': 'HGSVM',
+                'params': {
+                    'c': [0.01],
+                    'loss': ['hinge'],
+                    'max_iter': [500]
+                }
+            },
+
             'RandomForest': {
-                'class': 'RandomForest',
+                'class': 'HGRandomForest',
                 'params': {
                     'n_estimators': [100],
                     'max_depth': [10],
@@ -315,7 +318,7 @@ class FullWorkflow:
                 predictor = PredictionWorkflow(
                     data=utils.retrieve_data(CLUSTERED_DATA_PATH_V2),
                     scoring=self.scoring,
-                    params=params
+                    params=params_2
                 )
 
                 predictor._prepare_data()
