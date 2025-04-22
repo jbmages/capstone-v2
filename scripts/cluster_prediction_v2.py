@@ -2,23 +2,17 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import SVC
-from sklearn.metrics import accuracy_score, classification_report
-from sklearn.neural_network import MLPClassifier
+import time
+import itertools
 import joblib
 import os
-from xgboost import XGBClassifier
-from sklearn.metrics import roc_auc_score, log_loss, mean_squared_error
-import warnings
-import time
 
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scripts.models import *
 
 class PredictionWorkflow:
-    def __init__(self, data, scoring, cluster_type='gmm_4_both_cluster', test_size=0.2, use_subset=True, subset_size=100000, params = {}):
+    def __init__(self, data, scoring, cluster_type='gmm_4_both_cluster', test_size=0.2, use_subset=True, subset_size=100000, params={}):
         self.data = data.copy()
         self.scoring = scoring
         self.cluster_type = cluster_type
@@ -26,6 +20,16 @@ class PredictionWorkflow:
         self.use_subset = use_subset
         self.subset_size = subset_size
         self.params = params
+        self.scaler = StandardScaler()
+        self.best_model = None
+        self.best_model_name = None
+
+        self.MODEL_CLASS_MAP = {
+            'LogisticRegression': LogisticRegression,
+            'SVM': SVM,
+            'NeuralNet': NeuralNet,
+            'RandomForest': RandomForest
+        }
 
     def _prepare_data(self):
         print("Preparing data...")
@@ -52,22 +56,55 @@ class PredictionWorkflow:
         self.X_test_scaled = self.scaler.transform(self.X_test)
 
     def grid_search(self):
-        """
-        execute supervised predictive grid search
-        """
+        print("\nStarting grid search...")
+        results = []
+        start_time = time.time()
 
-        pass
-    def print_model_metrics(self):
-        if not hasattr(self, "model_scores"):
-            print("No models trained yet. Please run train_all() first.")
-            return
+        for model_name, config in self.params.items():
+            print(f"\nModel: {model_name}")
+            keys, values = zip(*config['params'].items())
+            model_class = self.MODEL_CLASS_MAP.get(config['class'])
 
-        metrics_df = pd.DataFrame(self.model_scores).T
-        print("\n=== Model Evaluation Metrics ===")
-        print(metrics_df.round(4))
+            if not model_class:
+                print(f"Unknown model class: {config['class']}")
+                continue
 
-        plt.figure(figsize=(10, 5))
-        sns.heatmap(metrics_df, annot=True, fmt=".3f", cmap="viridis")
-        plt.title("Model Evaluation Metrics")
-        plt.tight_layout()
-        plt.show()
+            for param_combo in itertools.product(*values):
+                param_dict = dict(zip(keys, param_combo))
+                print(f"Evaluating with params: {param_dict}")
+
+                model = model_class(
+                    self.X_train_scaled,
+                    self.X_test_scaled,
+                    self.y_train,
+                    self.y_test,
+                    param_dict
+                )
+
+                scores = model.run()
+                scores.update({
+                    'model': model_name,
+                    **param_dict
+                })
+                scores['model_instance'] = model
+                results.append(scores)
+
+        results_df = pd.DataFrame(results)
+        results_df.sort_values(by='accuracy', ascending=False, inplace=True)
+        self.best_model = results_df.iloc[0]['model_instance']
+        self.best_model_name = results_df.iloc[0]['model']
+
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        os.makedirs("model_eval", exist_ok=True)
+        results_df.drop(columns=['model_instance'], inplace=True)
+        results_df.to_csv(f"model_eval/sml_grid_search_results_{timestamp}.csv", index=False)
+        print(f"\nSaved results to model_eval/sml_grid_search_results_{timestamp}.csv")
+
+        return results_df
+
+    def save_best_model(self, output_path="model_eval/final_model.joblib"):
+        if self.best_model is None:
+            raise ValueError("No best model found. Run grid_search() first.")
+
+        joblib.dump(self.best_model, output_path)
+        print(f"\nSaved best model ({self.best_model_name}) to {output_path}")

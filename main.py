@@ -5,7 +5,9 @@ from scripts.preprocess_data import DataPreprocessor
 from scripts.clustering import ClusteringWorkflow
 from scripts.cluster_analytics_pipeline import ClusterAnalyticsPipeline
 
+
 from scripts.cluster_prediction import ClusterPredictor
+from scripts.cluster_prediction_v2 import PredictionWorkflow
 import scripts.utils as utils
 from scripts.location_prediction import ImprovedPredictiveModel
 import pandas as pd
@@ -13,7 +15,7 @@ import time
 
 
 
-from scripts.cluster_analytics_pipeline import ClusterAnalyticsPipeline
+
 
 GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0Gga4Rvo5iDrHuHBFGgrP'
 
@@ -214,22 +216,64 @@ class FullWorkflow:
             print('failed')
             traceback.print_exc()
 
-
     def cluster_prediction_v2(self):
         """ Runs cluster prediction algorithm """
+
+        params = {
+            'LogisticRegression': {
+                'class': 'LogisticRegression',
+                'params': {
+                    'penalty': ['l1', 'l2', 'elasticnet'],
+                    'c': [0.01, 0.1, 1.0, 10],
+                    'solver': ['saga'],  # only solver that supports all penalties
+                    'max_iter': [200, 500]
+                }
+            },
+            'SVM': {
+                'class': 'SVM',
+                'params': {
+                    'c': [0.01, 0.1, 1.0, 10],
+                    'loss': ['hinge', 'squared_hinge'],
+                    'max_iter': [500, 1000]
+                }
+            },
+            'NeuralNet': {
+                'class': 'NeuralNet',
+                'params': {
+                    'hidden_layer_sizes': [(64,), (128,), (128, 64)],
+                    'alpha': [0.0001, 0.001, 0.01],
+                    'solver': ['adam', 'sgd'],
+                    'max_iter': [200, 300],
+                    'learning_rate': [0.001, 0.01]
+                }
+            },
+            'RandomForest': {
+                'class': 'RandomForest',
+                'params': {
+                    'n_estimators': [100, 200],
+                    'max_depth': [10, 20, None],
+                    'min_samples_split': [2, 5],
+                    'min_samples_leaf': [1, 2],
+                    'max_features': ['auto', 'sqrt']
+                }
+            }
+        }
+
         try:
             if os.path.exists(CLUSTERED_DATA_PATH):
+                predictor = PredictionWorkflow(
+                    data=utils.retrieve_data(CLUSTERED_DATA_PATH_V2),
+                    scoring=self.scoring,
+                    params=params
+                )
 
-                predictor = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH_V2),
-                                                   scoring=self.scoring)
-                predictor.train_all()
+                predictor._prepare_data()
+                predictor.grid_search()
+                predictor.save_best_model("model_eval/final_model.joblib")
 
-                # Plot accuracies
-                predictor.plot_model_accuracies()
-
-        except Exception:
+        except Exception as e:
             print('failed')
-            traceback.print_exc()
+            print(str(e))
 
     def predictive_modeling(self,sample_frac,target):
         "Runs the predictive model"""
