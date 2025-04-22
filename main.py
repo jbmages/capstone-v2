@@ -14,9 +14,6 @@ import pandas as pd
 import time
 
 
-
-
-
 GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0Gga4Rvo5iDrHuHBFGgrP'
 
 # Define paths
@@ -71,9 +68,9 @@ class FullWorkflow:
                 self.clustering_analytics()
 
 
-            ### CLUSTER PREDICTION
+            ### CLUSTER PREDICTION®
 
-            self.cluster_prediction_v2()
+            self.clustering()
 
             if not skip_predictive:
 
@@ -134,14 +131,12 @@ class FullWorkflow:
             print("Starting full clustering grid search...")
             # Targeted combinations based on prior findings
             cluster_data_variants = [
-                (['scores'], True),
-                (['survey_answers'], True),
-                (['scores', 'survey_answers'], True),  # FA helps
+
+                (['scores'], True)
+
             ]
 
-            # Expanded hyperparameter space
             model_space = {
-
                 'GMM': {
                     'class': 'GMMHomegrown',
                     'params': {
@@ -156,6 +151,15 @@ class FullWorkflow:
                     'params': {
                         'eps': [0.5, 1.0, 1.5],
                         'min_samples': [5, 10, 15],
+                        'n_factors': [5]
+                    }
+                },
+                'KMeans': {
+                    'class': 'KMeansHomegrown',
+                    'params': {
+                        'n_clusters': [3, 4, 5, 6],
+                        'max_iter': [50, 100],
+                        'n_init': [10],
                         'n_factors': [5]
                     }
                 }
@@ -177,7 +181,7 @@ class FullWorkflow:
                         apply_factor_analysis=fa_flag,
                         n_factors=5,
                         max_time=120,
-                        save_results=False  #
+                        save_results=True  #
                     )
 
                     results = workflow.grid_search()

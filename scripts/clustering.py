@@ -103,8 +103,13 @@ class ClusteringWorkflow:
                     }
 
                     if hasattr(model, 'labels_'):
-                        result['n_clusters_found'] = len(set(model.labels_)) - (1 if -1 in model.labels_ else 0)
-                        #self.save_cluster_assignments(model_name, param_dict, model.labels_)
+                        kde_results = self.kde_density_comparison(model.labels_)
+                        for _, row in kde_results.iterrows():
+                            result.update({
+                                f'kde_enrichment_cluster_{int(row["cluster"])}': row['enrichment'],
+                                f'kde_pval_cluster_{int(row["cluster"])}': row['p_value']
+                            })
+                        self.save_cluster_assignments(model_name, param_dict, model.labels_)
 
                     results.append(result)
 
@@ -128,21 +133,39 @@ class ClusteringWorkflow:
 
         return results
 
-    def kde_density_comparison(self, labels, n_trials=10):
-        kde = KernelDensity(kernel='gaussian', bandwidth=0.5).fit(self.data)
+    def kde_density_comparison(self, labels, n_trials=10, bandwidth=0.25):
+        kde = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(self.data)
         log_densities = kde.score_samples(self.data)
-        actual_avg_density = np.mean([log_densities[i] for i in range(len(labels))])
+        densities = np.exp(log_densities)
 
-        null_densities = []
-        for _ in range(n_trials):
-            permuted_labels = np.random.permutation(labels)
-            null_avg = np.mean([log_densities[i] for i in range(len(permuted_labels))])
-            null_densities.append(null_avg)
+        cluster_info = []
+        unique_labels = [label for label in np.unique(labels) if label != -1]
 
-        null_mean = np.mean(null_densities)
-        density_gain = actual_avg_density - null_mean
-        return {
-            'avg_density': actual_avg_density,
-            'null_avg_density': null_mean,
-            'density_gain': density_gain
-        }
+        for label in unique_labels:
+            cluster_indices = np.where(labels == label)[0]
+            cluster_density = np.mean(densities[cluster_indices])
+
+            # Null model: shuffle each dimension independently
+            null_densities = []
+            for _ in range(n_trials):
+                permuted_data = np.copy(self.data)
+                for col in range(permuted_data.shape[1]):
+                    np.random.shuffle(permuted_data[:, col])
+                kde_null = KernelDensity(kernel='gaussian', bandwidth=bandwidth).fit(permuted_data)
+                null_density_samples = np.exp(kde_null.score_samples(permuted_data))
+                null_densities.append(np.mean(null_density_samples[cluster_indices]))
+
+            null_mean = np.mean(null_densities)
+            enrichment = cluster_density / null_mean
+            p_value = np.mean([1 if cluster_density < d else 0 for d in null_densities])
+
+            cluster_info.append({
+                'cluster': label,
+                'avg_density': cluster_density,
+                'null_avg_density': null_mean,
+                'enrichment': enrichment,
+                'p_value': p_value
+            })
+
+        return pd.DataFrame(cluster_info)
+
