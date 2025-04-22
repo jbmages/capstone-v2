@@ -165,7 +165,7 @@ class FullWorkflow:
                         apply_factor_analysis=fa_flag,
                         n_factors=5,
                         max_time=120,
-                        save_results=False  # We'll save one final combined CSV instead
+                        save_results=False  #
                     )
 
                     results = workflow.grid_search()
@@ -178,12 +178,6 @@ class FullWorkflow:
             os.makedirs("model_eval", exist_ok=True)
             df.to_csv(out_path, index=False)
 
-            # Show top results
-            print("\n[DONE] Top Models by Silhouette Score:")
-            top_df = df.sort_values(by='silhouette', ascending=False).head(10)
-            #print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz', 'density_gain']])
-            print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz']])
-            print(f"\n[SAVED] Full results to: {out_path}")
 
         except Exception as e:
             import traceback
@@ -205,6 +199,23 @@ class FullWorkflow:
             traceback.print_exc()
 
     def cluster_prediction(self):
+        """ Runs cluster prediction algorithm """
+        try:
+            if os.path.exists(CLUSTERED_DATA_PATH):
+
+                predictor = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH_V2),
+                                                   scoring=self.scoring)
+                predictor.train_all()
+
+                # Plot accuracies
+                predictor.plot_model_accuracies()
+
+        except Exception:
+            print('failed')
+            traceback.print_exc()
+
+
+    def cluster_prediction_v2(self):
         """ Runs cluster prediction algorithm """
         try:
             if os.path.exists(CLUSTERED_DATA_PATH):
