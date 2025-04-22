@@ -9,23 +9,19 @@ class ClusterAnalyticsPipeline:
     def __init__(self, data, scoring):
         self.data = data
         self.scoring = scoring
-        print(self.data)
+
         self.assign_question()
         self.to_json()
         return
 
     def assign_question(self):
         """Assign actual question names to the first 50 columns in self.data"""
-        # Create a mapping from id to question
         id_to_question = dict(zip(self.scoring['id'], self.scoring['trait']))
 
-        # Get the first 50 column names
         original_cols = list(self.data.columns[:55])
 
-        # Build new column names in the format "EXT9: I am the life of the party"
         new_cols = [f"{col}: {id_to_question[col]}" if col in id_to_question else col for col in original_cols]
 
-        # Assign new column names to the DataFrame
         self.data.columns = new_cols + list(self.data.columns[55:])
 
         print("question names assigned to data")
@@ -57,7 +53,7 @@ class ClusterAnalyticsPipeline:
 
         # Define output path and ensure the directory exists
         output_dir = "dashboard/dash-data"
-        os.makedirs(output_dir, exist_ok=True)  # Ensure directory exists before saving
+        os.makedirs(output_dir, exist_ok=True)
         output_json = os.path.join(output_dir, "cluster_data_v2.json")
 
         # Save JSON file
@@ -71,4 +67,4 @@ class ClusterAnalyticsPipeline:
         print(f"JSON saved at {output_json} ({file_size:.2f} MB)")
         print(f"Process took {end_time - start_time:.2f} seconds")
 
-        return output_json  # Return file path if needed
+        return output_json
