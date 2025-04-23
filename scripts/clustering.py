@@ -26,10 +26,6 @@ class ClusteringWorkflow:
         self.n_factors = n_factors
 
         self.MODEL_CLASS_MAP = {
-            'KMeans': KMeans,
-            'GMM': GMM,
-            'DBScan': DBScan,
-            'Hierarchical': Hierarchical,
             'KMeansHomegrown': KMeansHomegrown,
             'GMMHomegrown': GMMHomegrown,
             'DBScanHomegrown': DBScanHomegrown

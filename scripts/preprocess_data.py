@@ -58,7 +58,7 @@ class DataPreprocessor:
 
         # Filter the data where 'ipc' column is equal to 1
         self.data = self.data[self.data['IPC'] == 1]
-        print('NUMBER OF ROWS:', len(self.data))
+        print('Removed data with more than one IP in survey instance..')
 
 
     def trait_scores(self):
@@ -95,7 +95,7 @@ class DataPreprocessor:
         self.data = self.data.dropna(subset=survey_answer_cols)
 
         remove_time = time.time() - start_time
-        print(f"Removed {len(self.data)} rows with missing survey answers.")
+
         print(f"Removing NaN values took: {self.format_time(remove_time)}")
 
     def save_data(self):

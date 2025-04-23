@@ -1,109 +1,94 @@
-
-# Personality Clustering, Modeling, and Analysis
-
+# Personality Clustering, Modeling, and Analysis  
 **Julian Benitez Mages & Anaelle Surprise**
 
-![](images/image-26380211.png)
+---
 
-![](images/quiz_results.jpg)
+## Project Overview
 
-## Data Setup
+This project explores whether distinct personality groupings exist within the continuous space defined by the Big Five personality traits. Using over 1 million survey responses from the International Personality Item Pool (IPIP), we apply clustering and classification techniques to uncover latent personality structures and enable real-time predictions via a web interface.
 
-To set up your environment to run our model, follow these steps:
+We implemented K-Means, Gaussian Mixture Models (GMM), and DBSCAN with full grid search, integrated Factor Analysis for dimensionality reduction, and validated clusters using supervised models including logistic regression, SVMs, neural networks, and random forests.
+
+---
+
+## Quickstart: Run the Pipeline
+
+To run the full demo pipeline locally:
 
 1. Clone the repository:
-   ```
+   ```bash
    git clone <repository_url>
    cd <repository_name>
    ```
+
 2. Install dependencies:
-   ```
+   ```bash
    pip install -r requirements.txt
    ```
-3. Run data processing:
-   - The script processes the dataset, normalizes it, calculates trait scores, and handles missing values.
-   - It also includes time tracking to monitor processing duration.
 
+3. Run the project in demo mode (downloads data + runs best configs):
    ```bash
-   python data_preprocessing.py
+   python main.py
    ```
 
----
-
-## Background & Context
-
-The **Big Five Personality Traits** (also known as the **Five Factor Model**) is a framework for understanding personality based on five traits:
-- **Openness**
-- **Conscientiousness**
-- **Extraversion**
-- **Agreeableness**
-- **Neuroticism**
-
-The **IPIP** (International Personality Item Pool) inventory measures these traits through a set of 50 questions, with each rated on a scale from 1 to 5. Our dataset contains **1,015,342 responses** collected between 2016 and 2018, with additional metadata such as respondent country, screen size, and time spent on each survey page.
+This will:
+- Download the IPIP dataset automatically
+- Run a shortened version of the pipeline using pre-selected model configurations
+- Output clustering results, evaluation metrics, and cluster predictions
 
 ---
 
-## Objective & Research Questions
+## Key Features
 
-### Key Question: **Do distinct personality clusters exist within the Big Five framework?**
-While the Big Five model suggests personality traits lie on a continuous spectrum, clustering techniques can reveal whether there are natural groupings within the dataset.
-
-### Additional Goals:
-1. **Clustering Personality Traits:** Investigate if distinct personality profiles emerge through clustering.
-2. **Survey Response Modeling:** Analyze how response times and patterns correlate with personality traits and demographic data.
-3. **Geographic Location Prediction:** Use supervised learning to predict respondents' countries based on personality and response behavior.
-4. **LLM Interpretation:** Employ large language models to interpret and describe personality clusters.
+- Clustering Personality Data: Identify latent groupings using KMeans, GMM, and DBSCAN
+- Dimensionality Reduction: Use Factor Analysis to enhance interpretability
+- Model Evaluation: Compare clusters with Silhouette, Davies-Bouldin, and Calinski-Harabasz scores
+- Cluster Prediction: Train supervised models to classify new users into clusters
+- Web Deployment: Serve real-time predictions via a survey interface and cluster visualization dashboard
 
 ---
 
-## Data Pre-Processing
+## Data Overview
 
-Our data preprocessing pipeline includes:
-- **Data Cleaning:** Removing duplicate responses based on IP addresses.
-- **Normalization:** Converting responses to numerical values and calculating trait scores.
-- **Handling Missing Values:** Removing rows with NaN values in survey responses.
-- **Feature Engineering:** Adding calculated trait scores and response time features.
+- **Source:** Publicly available IPIP-50 dataset (2016–2018) via Kaggle  
+- **Size:** 1,015,342 survey responses  
+- **Includes:** Big Five trait responses (Likert scale), timestamp data, device info, and user metadata
 
 ---
 
-## Exploratory Data Analysis (EDA)
+## Web Interfaces
 
-Key analyses conducted during EDA:
-- **Trait Distribution:** Visualized the distribution of trait scores across the dataset.
-- **Correlation Analysis:** Generated heatmaps of question-level response correlations.
-- **Geographic Distribution:** Mapped the number of respondents per country.
-- **Clustering Exploration:** Applied PCA and t-SNE for dimensionality reduction and initial clustering analysis.
+- **Survey Page:** Built using HTML, CSS, and D3.js — lets users take the IPIP-50 test and receive a predicted cluster in real time via a Hugging Face model API  
+- **Cluster Dashboard:** Visualizes trait distributions and cluster structure using D3.js + Flask, hosted on GitHub Pages
 
 ---
 
-## Clustering Insights
+## Research Background
 
-Clustering techniques were tested to determine if distinct personality types exist within the Big Five traits. While MBTI assumes discrete categories, the Big Five suggests a continuous spectrum. Our analysis explored whether personality clusters emerge naturally or if traits blend more fluidly.
-
-Steps in clustering:
-1. **Dimensionality Reduction:** PCA and t-SNE were applied to reduce the feature space while preserving important information.
-2. **Clustering Methods:** K-Means, DBSCAN, and Hierarchical Clustering were tested to find natural groupings.
-3. **Cluster Interpretation:** Clusters were evaluated to see if they align with existing personality theories.
-4. **LLM Explanation:** Used LLMs to generate human-readable descriptions of the identified clusters.
+- Grounded in the Five Factor Model (Openness, Conscientiousness, Extraversion, Agreeableness, Emotional Stability)  
+- Inspired by:  
+  - **Gerlach et al. (2018):** Used GMM, Factor Analysis, and kernel density tests to validate clusters  
+  - **Chi (2023):** Applied KMeans and supervised methods (Neural Nets, Discriminant Analysis) for predictive validation
 
 ---
 
-## Next Steps
+## Future Work
 
-- **Refine Clustering Models:** Further validation and fine-tuning of clustering models to confirm the stability of personality types.
-- **Enhance Predictive Models:** Improve geographic prediction accuracy using supervised learning techniques.
-- **Interactive Front-End:** Develop a user interface where individuals can take the survey and receive predictions about their personality profile and location.
-- **Expand LLM Usage:** Continue exploring ways LLMs can provide more nuanced descriptions of personality clusters.
+- Apply kernel density estimation to test statistical significance of clusters  
+- Compare discovered clusters to known predictors like income, marital status, or team performance  
+- Explore self-perception biases in personality reporting  
+- Migrate data pipeline to a scalable cloud backend (e.g., S3, GCP)  
+- Expand LLM integration for natural language cluster summaries
 
 ---
 
-## Related Research Papers & References
+## References
 
-Relevant studies on personality clustering, predictive modeling, and the use of LLMs in personality analysis were reviewed.
+- Gerlach, M. et al. (2018). *Nature Human Behaviour*  
+- Chi, D. (2023). *International Journal of Data Science*
 
 ---
 
 ## Conclusion
 
-This project combines machine learning, psychology, and natural language processing to explore the existence of personality clusters within the Big Five framework. Through advanced data analysis, clustering, and LLM interpretation, we aim to uncover whether distinct personality profiles emerge or if personality traits exist as a continuous spectrum.
-
+This project demonstrates how unsupervised and supervised learning can be used to explore and validate personality structures at scale. Our workflow integrates clustering, prediction, and front-end deployment to enable deeper understanding of personality data — and lay the groundwork for interactive, interpretable tools in psychology, HR, and recommendation systems.
