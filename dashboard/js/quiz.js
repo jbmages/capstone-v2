@@ -134,7 +134,6 @@ function buildQuiz() {
     $('.value-btn').click(handleAnswer);
 }
 
-
 function handleAnswer() {
     const btn = $(this);
     const trait = btn.data('trait');
@@ -158,12 +157,63 @@ function handleAnswer() {
     const finalVal = reverse ? reverseScore(value) : value;
     scores[trait] += finalVal;
 
-
-    console.log("Scores:", scores);
     updateProgressBar();
     $('#submit-btn').prop('disabled', answered < total);
     console.log(`Answered ${answered} / ${total}`);
+}
 
+
+function handleSubmit() {
+    const timeSpent = Math.floor((new Date() - startTime) / 1000);
+
+    // Build the full list of 50 raw responses
+    let rawResponses = [];
+
+    for (const trait of ["OPN", "CSN", "EXT", "AGR", "EST"]) {
+        for (let i = 0; i < 10; i++) {
+            const questionClass = `${trait}${i}`;
+            const activeBtn = $(`.${questionClass}.active`);
+            if (activeBtn.length === 0) {
+                alert("Please answer all questions.");
+                return;
+            }
+
+            const value = parseInt(activeBtn.data("value"));
+            const reverse = activeBtn.data("reverse") === true || activeBtn.data("reverse") === "true";
+            const finalVal = reverse ? reverseScore(value) : value;
+
+            rawResponses.push(finalVal);
+        }
+    }
+
+    // Save scores in localStorage
+    const data = {
+        scores: scores,
+        features: rawResponses,
+        timeSpent: timeSpent
+    };
+
+    localStorage.setItem('personalityTestData', JSON.stringify(data));
+
+    fetch('http://localhost:5000/predict-cluster', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ features: rawResponses })
+    })
+    .then(res => res.json())
+    .then(response => {
+        console.log("Predicted cluster:", response.cluster);
+        showResults(scores, response.cluster, timeSpent);
+    })
+    .catch(err => {
+        console.error("Error predicting cluster:", err);
+        showResults(scores, "Unavailable", timeSpent);
+    });
+
+    $('#quiz').hide();
+    $('#submit-btn').hide();
+    $('#retake-btn').show();
+    $('.results').removeClass('hide');
 }
 
 function reverseScore(value) {
@@ -183,19 +233,18 @@ function handleSubmit() {
     // Save locally
     localStorage.setItem('personalityTestData', JSON.stringify(data));
 
-    // Send to backend
-    fetch('http://localhost:5000/predict-region', {
+    fetch('http://localhost:5000/predict-cluster', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify({ features: Object.values(scores) })
     })
     .then(res => res.json())
     .then(response => {
-        console.log("Backend region prediction:", response.region);
-        showResults(scores, response.region, timeSpent);
+        console.log("Predicted cluster:", response.cluster);
+        showResults(scores, response.cluster, timeSpent);
     })
     .catch(err => {
-        console.error("Error predicting region:", err);
+        console.error("Error predicting cluster:", err);
         showResults(scores, "Unavailable", timeSpent);
     });
 
@@ -207,12 +256,41 @@ function handleSubmit() {
 
 }
 
-function showResults(scores, region, timeSpent) {
+function showResults(scores, cluster, timeSpent) {
     let html = `<h3>Your Scores</h3>`;
     for (const [trait, score] of Object.entries(scores)) {
         html += `<p><strong>${trait}</strong>: ${score}</p>`;
     }
-    html += `<h3>Predicted Region</h3><p>${region}</p>`;
+
+    // Cluster Descriptions
+    const clusterDescriptions = {
+        0: {
+            title: "Cluster 0: The Easygoing Idealist",
+            desc: "You're organized, thoughtful, and emotionally stable. You enjoy structure and value depth over spontaneity.You're intellectually curious and socially cooperative, with decent emotional stability. This combination makes you a flexible team player who can navigate both new ideas and interpersonal dynamics effectively."
+        },
+        1: {
+            title: "Cluster 1:The Content Loner",
+            desc: "You’re imaginative and curious. You march to the beat of your own drum, exploring ideas and concepts with a laid-back attitude and less concern for social conventions."
+        },
+        2: {
+            title: "The Friendly Intellectual",
+            desc: "You’re curious and open-minded, yet grounded. You may be introverted but emotionally secure and thoughtful."
+        },
+        3: {
+            title: "Cluster 3:The People Pleaser",
+            desc: "Practical and emotionally steady, you approach life with measured confidence. You may not seek the spotlight, but you shine in your own way."
+        }
+    };
+
+    const clusterNum = parseInt(cluster);
+    const clusterInfo = clusterDescriptions[clusterNum] || {
+        title: "Unknown Cluster",
+        desc: "We couldn’t confidently assign you to a cluster. Try retaking the quiz!"
+    };
+
+    html += `<h3>Cluster Match: Cluster ${clusterNum + 1}</h3>`;
+    html += `<p><strong>Personality Type: ${clusterInfo.title}</strong></p>`;
+    html += `<p>${clusterInfo.desc}</p>`;
     html += `<p><small>Completed in ${timeSpent} seconds</small></p>`;
 
     $('#results').html(html);

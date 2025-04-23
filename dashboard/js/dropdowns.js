@@ -40,7 +40,7 @@ window.setupDropdowns = function(data, numericCols, clusterOptions, onChange) {
         .text(d => d)
         .attr("value", d => d);
 
-    // Triggers chart update when dropdown changes
+    // chart updates when dropdown changes
    clusterDropdown.on("change", () => {
         console.log("Cluster dropdown changed");
         onChange();

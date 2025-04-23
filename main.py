@@ -34,8 +34,7 @@ class FullWorkflow:
                 self.data_preprocessing()
             self.dataset = self.load_dataset()
             self.clustering()
-            self.clustering_analytics()
-            self.cluster_prediction()
+
         except Exception:
             traceback.print_exc()
 
