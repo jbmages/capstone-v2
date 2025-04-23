@@ -24,8 +24,8 @@ class ClusterAnalyticsPipeline:
 
         self.data.columns = new_cols + list(self.data.columns[55:])
 
-        print("question names assigned to data")
-        print(self.data.head(15))
+
+
         return
 
 
