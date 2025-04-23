@@ -162,7 +162,7 @@ rect.histogram-bar:hover {
 }
 
 .value-btn.active {
-    background-color: #89d298; /* soft green */
+    background-color: #89d298; 
     color: white;
     font-weight: bold;
     border-color: #89d298;

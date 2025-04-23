@@ -20,3 +20,5 @@ tqdm==4.67.1
 typing_extensions==4.13.0
 tzdata==2025.2
 urllib3==2.3.0
+flask
+npm
