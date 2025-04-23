@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import time
 import os
+pd.set_option('display.max_columns', None)
 
 class ClusterAnalyticsPipeline:
 
@@ -9,39 +10,42 @@ class ClusterAnalyticsPipeline:
         self.data = data
         self.scoring = scoring
 
+        self.assign_question()
+        self.to_json()
         return
 
     def assign_question(self):
         """Assign actual question names to the first 50 columns in self.data"""
-        # Create a mapping from id to question
         id_to_question = dict(zip(self.scoring['id'], self.scoring['trait']))
 
-        # Get the first 50 column names
-        original_cols = list(self.data.columns[:50])
+        original_cols = list(self.data.columns[:55])
 
-        # Build new column names in the format "EXT9: I am the life of the party"
         new_cols = [f"{col}: {id_to_question[col]}" if col in id_to_question else col for col in original_cols]
 
-        # Assign new column names to the DataFrame
-        self.data.columns = new_cols + list(self.data.columns[50:])
+        self.data.columns = new_cols + list(self.data.columns[55:])
 
         print("question names assigned to data")
+        print(self.data.head(15))
         return
 
 
     def to_json(self, sample_frac=0.1, max_rows=10000):
+
+        cluster_cols = ['gmm_4_both_cluster', 'gmm_3_both_cluster',
+                        'gmm_3_survey_cluster', 'gmm_5_survey_cluster']
+
         start_time = time.time()
 
         # Select relevant columns (first 50 + last 2 for clustering info)
-        selected_columns = list(self.data.columns[:50]) + ["KMeans_Cluster", "GMM_Cluster"]
+        selected_columns = list(self.data.columns[5:55]) + cluster_cols
         df_subset = self.data[selected_columns]
 
         # Randomly sample 10% of the data, but no more than max_rows
-        num_rows = min(int(len(df_subset) * sample_frac), max_rows)
+        num_rows = max_rows
         df_sample = df_subset.sample(n=num_rows, random_state=42)  # Fix seed for reproducibility
 
-        df_sample["KMeans_Cluster"] = pd.to_numeric(df_sample["KMeans_Cluster"], errors="coerce")
-        df_sample["GMM_Cluster"] = pd.to_numeric(df_sample["GMM_Cluster"], errors="coerce")
+        for cluster in cluster_cols:
+            df_sample[cluster] = pd.to_numeric(df_sample[cluster], errors="coerce")
 
         # Convert to JSON format
         print(f"Converting {num_rows}/{len(df_subset)} rows to JSON...")
@@ -49,8 +53,8 @@ class ClusterAnalyticsPipeline:
 
         # Define output path and ensure the directory exists
         output_dir = "dashboard/dash-data"
-        os.makedirs(output_dir, exist_ok=True)  # Ensure directory exists before saving
-        output_json = os.path.join(output_dir, "cluster_data.json")
+        os.makedirs(output_dir, exist_ok=True)
+        output_json = os.path.join(output_dir, "cluster_data_v2.json")
 
         # Save JSON file
         with open(output_json, "w") as f:
@@ -63,4 +67,4 @@ class ClusterAnalyticsPipeline:
         print(f"JSON saved at {output_json} ({file_size:.2f} MB)")
         print(f"Process took {end_time - start_time:.2f} seconds")
 
-        return output_json  # Return file path if needed
+        return output_json

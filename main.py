@@ -2,16 +2,16 @@ import os
 import traceback
 from scripts.download_data import DataDownloader
 from scripts.preprocess_data import DataPreprocessor
+from scripts.clustering import ClusteringWorkflow
+from scripts.cluster_analytics_pipeline import ClusterAnalyticsPipeline
 
-from scripts.cluster_prediction import ClusterPredictor
+
+from scripts.cluster_prediction import PredictionWorkflow
 import scripts.utils as utils
 from scripts.location_prediction import ImprovedPredictiveModel
 import pandas as pd
 import time
 
-
-from scripts.clustering import ClusteringWorkflow
-from scripts.cluster_analytics_pipeline import ClusterAnalyticsPipeline
 
 GOOGLE_DRIVE_URL = 'https://drive.google.com/uc?export=download&id=1FzmqQDt_Amv0Gga4Rvo5iDrHuHBFGgrP'
 
@@ -28,8 +28,9 @@ class FullWorkflow:
     """
 
     def __init__(self, dataset_url: str, skip_download=True, skip_preprocessing=True,
-                 skip_clustering=False, skip_predictive=True, use_clustering_v2=True,
-                 use_prediction_v2=True, skip_region_predictive=True):
+                 skip_clustering=True, skip_predictive=False,
+                 use_prediction_v2=False, skip_region_predictive=True,
+                 skip_cluster_analytics=True):
         """
         Initializes the full workflow.
 
@@ -59,15 +60,20 @@ class FullWorkflow:
             self.dataset = self.load_dataset()
 
             ### CLUSTERING
-            if not skip_clustering:
-                    self.clustering()
 
-            ### CLUSTER PREDICTION
+
+
+            if not skip_cluster_analytics:
+                self.clustering_analytics()
+
+
+            ### CLUSTER PREDICTION®
+
+            self.clustering()
+
             if not skip_predictive:
-                if use_prediction_v2:
-                    self.cluster_prediction_v2()
-                else:
-                    self.cluster_prediction()
+
+                 self.cluster_prediction()
 
             ### REGION PREDICTION
             if not skip_region_predictive:
@@ -124,20 +130,36 @@ class FullWorkflow:
             print("Starting full clustering grid search...")
             # Targeted combinations based on prior findings
             cluster_data_variants = [
-                (['scores'], True),
-                (['survey_answers'], True),
-                (['scores', 'survey_answers'], True),  # FA helps
+
+                (['scores'], True)
+
             ]
 
-            # Expanded hyperparameter space
             model_space = {
-
-                'DBScan': {
-                    'class': 'DBScan',
+                'GMM': {
+                    'class': 'GMMHomegrown',
                     'params': {
-                        'eps': [1.0, 1.5, 2.0],
-                        'min_samples': [8, 12, 16, 20],
-                        'n_factors': [5]  # NEW
+                        'n_components': [3, 4, 5, 6],
+                        'max_iter': [50, 100],
+                        'tol': [1e-3, 1e-4],
+                        'n_factors': [5]
+                    }
+                },
+                'DBScan': {
+                    'class': 'DBScanHomegrown',
+                    'params': {
+                        'eps': [0.5, 1.0, 1.5],
+                        'min_samples': [5, 10, 15],
+                        'n_factors': [5]
+                    }
+                },
+                'KMeans': {
+                    'class': 'KMeansHomegrown',
+                    'params': {
+                        'n_clusters': [3, 4, 5, 6],
+                        'max_iter': [50, 100],
+                        'n_init': [10],
+                        'n_factors': [5]
                     }
                 }
             }
@@ -158,7 +180,7 @@ class FullWorkflow:
                         apply_factor_analysis=fa_flag,
                         n_factors=5,
                         max_time=120,
-                        save_results=False  # We'll save one final combined CSV instead
+                        save_results=True  #
                     )
 
                     results = workflow.grid_search()
@@ -171,78 +193,101 @@ class FullWorkflow:
             os.makedirs("model_eval", exist_ok=True)
             df.to_csv(out_path, index=False)
 
-            # Show top results
-            print("\n[DONE] Top Models by Silhouette Score:")
-            top_df = df.sort_values(by='silhouette', ascending=False).head(10)
-            #print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz', 'density_gain']])
-            print(top_df[['model', 'data_type', 'factor_analysis', 'silhouette', 'calinski_harabasz']])
-            print(f"\n[SAVED] Full results to: {out_path}")
 
         except Exception as e:
             import traceback
             print("[ERROR] Exception occurred during clustering:")
             traceback.print_exc()
 
-    #########################################################
-    #########################################################
-    #########################################################
-    def cluster_prediction(self):
-        """ Runs cluster prediction algorithm """
+    def clustering_analytics(self):
         try:
-            if os.path.exists(CLUSTERED_DATA_PATH):
-
-                predictor = ClusterPredictor(data=utils.retrieve_data(CLUSTERED_DATA_PATH),
-                                                   scoring=self.scoring)
-                predictor.train_all()
-
-                # Plot accuracies
-                predictor.plot_model_accuracies()
-
-                # Optional: Save models
-                predictor.save_models()
-
-                # Optional: Stepwise analysis (logistic or random_forest)
-                predictor.stepwise_feature_analysis(top_n=10, model_type='logistic')
-        except Exception:
-            print('you suck. cluster prediction failed bruh...')
+            if os.path.exists(CLUSTERED_DATA_PATH_V2):
+                print('initiating clustering analytics pipeline for dashboarding')
+                d = self.dataset = utils.retrieve_data(CLUSTERED_DATA_PATH_V2)
+                p = ClusterAnalyticsPipeline(data=d, scoring=self.scoring)
+            else:
+                print('error: path', CLUSTERED_DATA_PATH_V2, 'not found')
+                return
+        except Exception as e:
+            import traceback
+            print("[ERROR] Exception occurred in clustering analytics pipeline:")
             traceback.print_exc()
-
-
-
     def cluster_prediction_v2(self):
         """ Runs cluster prediction algorithm """
+
+        params = {
+            'LogisticRegression': {
+                'class': 'LogisticRegression',
+                'params': {
+                    'penalty': ['l1', 'l2'],
+                    'c': [0.01, 0.1, 1.0, 10],
+                    'solver': ['saga'],  # only solver that supports all penalties
+                    'max_iter': [200, 500]
+                }
+            },
+            'SVM': {
+                'class': 'SVM',
+                'params': {
+                    'c': [0.01, 0.1, 1.0, 10],
+                    'loss': ['hinge', 'squared_hinge'],
+                    'max_iter': [500, 1000]
+                }
+            },
+            'NeuralNet': {
+                'class': 'NeuralNet',
+                'params': {
+                    'hidden_layer_sizes': [(64,), (128,), (128, 64)],
+                    'alpha': [0.0001, 0.001, 0.01],
+                    'solver': ['adam', 'sgd'],
+                    'max_iter': [200, 300],
+                    'learning_rate': [0.001, 0.01]
+                }
+            },
+            'RandomForest': {
+                'class': 'RandomForest',
+                'params': {
+                    'n_estimators': [100, 200],
+                    'max_depth': [10, 20, None],
+                    'min_samples_split': [2, 5],
+                    'min_samples_leaf': [1, 2],
+                    'max_features': [1]
+                }
+            }
+        }
+
+        params_2 = {
+
+            'RandomForest': {
+                'class': 'HGRandomForest',
+                'params': {
+                    'n_estimators': [100],
+                    'max_depth': [10],
+                    'min_samples_split': [2],
+                    'min_samples_leaf': [1],
+                    'max_features': [1]
+                }
+            }
+        }
         try:
             if os.path.exists(CLUSTERED_DATA_PATH):
-                # run clustering workflow
-                # set dataset subset amount and max time length
-                #
-                pass
+
+                original_count = len(utils.retrieve_data(CLUSTERED_DATA_PATH_V2))
+                print('ORIGINAL COUNT', original_count)
 
 
-        except Exception:
-            traceback.print_exc()
-
-    def predictive_modeling(self,sample_frac,target):
-        "Runs the predictive model"""
-        try:
-            if self.dataset is not None:
-                print(f"Running improved predictive model on target: {target}")
-                model = ImprovedPredictiveModel(
-                    data=self.dataset,
-                    sample_frac=sample_frac,
-                    model_save_path=f"models/improved_rf_{target}.joblib"
+                predictor = PredictionWorkflow(
+                    data=utils.retrieve_data(CLUSTERED_DATA_PATH_V2),
+                    scoring=self.scoring,
+                    params=params_2
                 )
-                model.run(target=target)
-            else:
-                print("Dataset not loaded.")
-        except Exception:
-            print("Improved predictive modeling failed:")
-            traceback.print_exc()
 
+                predictor._prepare_data()
+                predictor.grid_search()
+                #predictor.save_best_model("model_eval/final_model.joblib")
 
-    #########################################################
-    #########################################################
-    #########################################################
+        except Exception as e:
+            print('failed')
+            print(str(e))
 
 
 if __name__ == "__main__":
@@ -254,8 +299,8 @@ if __name__ == "__main__":
         skip_preprocessing=True,
         skip_clustering=True,
         skip_predictive=True,
-        use_clustering_v2=False,
-        use_prediction_v2=False,
-        skip_region_predictive=False
+        skip_cluster_analytics=True,
+        use_prediction_v2=True,
+        skip_region_predictive=True
 
     )
