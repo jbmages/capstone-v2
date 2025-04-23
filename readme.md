@@ -17,8 +17,8 @@ To run the full demo pipeline locally:
 
 1. Clone the repository:
    ```bash
-   git clone <repository_url>
-   cd <repository_name>
+   git clone <https://github.com/jbmages/capstone-v2>
+   cd <capstone-v2>
    ```
 
 2. Install dependencies:
