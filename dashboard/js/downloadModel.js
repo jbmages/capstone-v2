@@ -2,7 +2,7 @@ const fs = require("fs");
 const fetch = require("node-fetch");
 const path = require("path");
 
-// List of model files to fetch
+// model files to fetch
 const files = [
   {
     url: "https://huggingface.co/DS-Capstone/personalityclusterpredictionmodel/resolve/main/random_forest_model.joblib",
@@ -14,7 +14,7 @@ const files = [
   }
 ];
 
-// Utility: Download file from URL
+// download file
 async function downloadFile(url, dest) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to download ${url}`);
@@ -27,12 +27,12 @@ async function downloadFile(url, dest) {
 }
 
 (async () => {
-  if (!fs.existsSync("models")) {
+  if (!fs.existsSync("models")) {// debugging
     fs.mkdirSync("models");
   }
 
   for (const file of files) {
-    if (fs.existsSync(file.dest)) {
+    if (fs.existsSync(file.dest)) { /// debugging
       console.log(`Already exists: ${file.dest}`);
     } else {
       console.log(`Downloading: ${file.url}`);

@@ -1,7 +1,6 @@
 window.drawLegend = function(clusters, color) {
     const legend = d3.select("#legend");
     legend.selectAll("*").remove();
-
     legend.selectAll("div")
         .data(clusters)
         .enter()

@@ -53,10 +53,10 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
         svg.selectAll("*").remove();
         legend.selectAll("*").remove();
 
-        // Get unique clusters
+        // retrieve unique clusters
         let uniqueClusters = Array.from(new Set(values.map(d => d.cluster))).sort((a, b) => a - b);
 
-        // Create color scale
+        // color scale
         let color = d3.scaleOrdinal()
             .domain(uniqueClusters)
             .range(d3.schemeTableau10.concat(d3.schemeSet3).slice(0, uniqueClusters.length)); // expand for more clusters
@@ -64,10 +64,10 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
         // X scale
         let x = d3.scaleBand()
             .domain([1, 2, 3, 4, 5])
-            .range([60, 340])  // Padding left/right inside the 350px space
+            .range([60, 340])  
             .padding(0.2);
 
-        // Create bins for each cluster separately
+        // bins for each cluster separately
         let binGenerator = d3.bin()
             .domain([0.5, 5.5])
             .thresholds([1, 2, 3, 4, 5, 6]);
@@ -78,7 +78,7 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
             clusteredBins[cluster] = binGenerator(vals);
         });
 
-        // Combine bins to determine max y value
+        // max y value
         let allBinHeights = [];
         Object.values(clusteredBins).forEach(bins => {
             bins.forEach((bin, i) => {
@@ -90,7 +90,7 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
             .domain([0, d3.max(allBinHeights)])
             .range([360, 40]);
 
-        // Draw histogram bars
+        // histogram bars
         let binKeys = clusteredBins[uniqueClusters[0]].map((_, i) => i);
 
         binKeys.forEach(i => {
@@ -113,12 +113,12 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
             });
         });
 
-        // X Axis
+        // X axis
         svg.append("g")
             .attr("transform", "translate(0,360)")
             .call(d3.axisBottom(x).tickValues([1, 2, 3, 4, 5]));
 
-        // X Axis Label
+        // X axis label
         svg.append("text")
             .attr("x", 300)
             .attr("y", 440)
@@ -126,12 +126,12 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
             .style("font-size", "12px")
             .text("Survey Response (1 = Disagree, 5 = Agree)");
 
-        // Y Axis
+        // Y axis
         svg.append("g")
             .attr("transform", "translate(40,0)")
             .call(d3.axisLeft(y));
 
-        // Y Axis Label
+        // Y axis label
         svg.append("text")
             .attr("text-anchor", "middle")
             .attr("transform", "rotate(-90)")
@@ -140,7 +140,7 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
             .style("font-size", "12px")
             .text("Number of Participants out Subset");
 
-        // Chart title
+        // title
         svg.append("text")
             .attr("x", 300)
             .attr("y", 20)
@@ -148,12 +148,11 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
             .style("font-size", "16px")
             .text(`Distribution of ${col} by ${clusterMethod}`);
 
-        // Trait Description
+        // dynamic trait description
         const prefix = col.slice(0, 3); 
         const description = traitGroupDescriptions[prefix] || "This trait is part of the Big Five personality model.";
         d3.select("#trait-description").text(description);
 
-        // Legend
         legend.selectAll("div")
             .data(uniqueClusters)
             .enter()
@@ -163,10 +162,10 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
             .html(d => `<span style="display:inline-block;width:12px;height:12px;background-color:${color(d)};margin-right:4px;"></span>Cluster ${+d + 1}`);
     }
 
-    // Initial chart
+    // first chart
     updateChart(numericCols[0], clusterOptions[0]);
 
-    // On dropdown change
+    // on dropdown change
     methodDropdown.on("change", function() {
         const col = columnDropdown.property("value");
         const cluster = this.value;
@@ -179,6 +178,6 @@ d3.json("dash-data/cluster_data.json").then(function(loadedData) {
         updateChart(col, cluster);
     });
 
-}).catch(function(error) {
+}).catch(function(error) {/// debugging
     console.error("Error loading the JSON file:", error);
 });

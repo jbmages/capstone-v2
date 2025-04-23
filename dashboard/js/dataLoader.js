@@ -1,3 +1,4 @@
+// check if data loaded
 window.loadClusterData = function(callback) {
     d3.json("dash-data/cluster_data.json").then(function(data) {
         if (!data || data.length === 0) {

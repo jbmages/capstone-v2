@@ -13,7 +13,7 @@ window.drawHistogram = function(svg, data, column, clusterMethod, color, x, y) {
 
     const uniqueClusters = Array.from(new Set(values.map(d => d.cluster))).sort((a, b) => a - b);
 
-    // Binning configuration to match Likert-scale values (1–5)
+    // match Likert-scale values (1–5)
     const binGenerator = d3.bin()
         .domain([0.5, 5.5])
         .thresholds([1, 2, 3, 4, 5, 6]);
@@ -33,8 +33,9 @@ window.drawHistogram = function(svg, data, column, clusterMethod, color, x, y) {
 
     y.domain([0, d3.max(allBinHeights)]);
     x.domain([1, 2, 3, 4, 5]);
-console.log("x.bandwidth() =", x.bandwidth());
+// console.log("x.bandwidth() =", x.bandwidth()); // debugging
 
+// spacing fixes
     for (let i = 0; i < 5; i++) {
         const xMid = i + 1;
         const xPos = x(xMid);
